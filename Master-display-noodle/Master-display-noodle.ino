@@ -2,18 +2,57 @@
    Noodle Vending Machine (Master Display)
    BY RMUTL Senior Project
    ---pin Connecting---
+    I2C slave  :
+      GND     GND
+      SDA     A4
+      SCL     A5
+
     LCD i2c :
       GND     GND
       VCC     5V
       SDA     A4
       SCL     A5
+
+    RTC i2c :
+      GND     GND
+      VCC     5V
+      SDA     A4
+      SCL     A5
+
     Keypad 4x4 :
       from left to right
       1-4 Row
       5-8 Column
+
+    MP3  :
+      TX      10 RX Software Serial
+      RX      11 TX Software Serial
+
+    Coin vending:
+      Signal  2
+
+    Heater  :
+      Trig    A0
+
+    Coin feeder :
+      Signal  A1
+
+     Flow sensor :
+      Signal  A2
+
+    Light  :
+      Trig    A3
+
+    mp3 list
+      1) welcome
+      2) insert coin
+      3) choose noodle cup
+      4) pick your noodle
+      5) hot water
 */
 
 
+/*************** Include Library ***************/
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
@@ -24,19 +63,30 @@
 #include <SoftwareServo.h>
 #include <DFPlayer_Mini_Mp3.h>
 #include <EEPROM.h>
+
+
+/*************** Initail variable ***************/
+// define pin
+#define PINSG9  2   // coin vending 
+#define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor
+
+
+// EEPROM address
 int eeAdd = 9;
 
-#define PINSG9  2
-
-#define ONE_WIRE_BUS 13
+// init onewire comminication
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 DeviceAddress insideThermometer;
 float tempC = 0.0;
 
+
+// init real time clock
 RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = {"   Sunday", "   Monday", "  Tuesday", "Wednesday", "Thursday ", "   Friday", " Saturday"};
 
+
+// init keypad 4x4
 #define password  "1234"
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -49,53 +99,59 @@ char keys[ROWS][COLS] = {
 byte rowPins[ROWS] = {12, 9, 8, 7};
 byte colPins[COLS] = {6, 5, 4, 3};
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+
+
+// init lcd display 20 x 4
 LiquidCrystal_I2C lcd(0x38, 20, 4); //  LCD address 0x38
 
+
+//init mp3 module
 SoftwareSerial mp3(10, 11);  // RX, TX
 SoftwareServo myservo;
 #define pinServo A1
 
+
+// global variable
 byte numKey, numKey1, numKey2, numKey3, numKey4;
 byte countPass = 0, mode = 0, lcdCol = 11;
 boolean pressState = false;
 char inChar;
 byte data;
 int noodle = 0;
-int sum = 0;
+int sum;
 int count = 0;
+float cal_coin;
 
-
+/*************** Sub function ***************/
+// read coin vending
 void coin() {
   unsigned long duration;
   for (int i = 0; i <= 5; i++)  {
     duration = pulseIn(PINSG9, LOW, 1000000);
-    float time = duration / 1000.00;
-    //    Serial.print("DelT=");
-    //    Serial.print(time);
-    //    Serial.println(" ms");
-
-    if (time > 2) {
+    cal_coin = duration / 1000.00;
+    Serial.print("DelT=");
+    Serial.print(cal_coin);
+    Serial.println(" ms");
+    if (cal_coin > 2) {
       count = count + 1;
     }
+  }
 
-    if (time == 0) {
-      if (count > 0 && count < 3) {
-        sum = sum + 1;
-        //        Serial.println("1 Bath");
-      }
-      if (count > 3 && count < 7) {
-        sum = sum + 5;
-        //        Serial.println("5 Bath");
-      }
-      if (count > 7) {
-        sum = sum + 10;
-        //        Serial.println("10 Bath");
-      }
-      count = 0;
+  if (cal_coin == 0) {
+    if (count > 0 && count < 7) {
+      sum = sum + 5;
+      //        Serial.println("5 Bath");
     }
+    if (count > 7) {
+      sum = sum + 10;
+      //        Serial.println("10 Bath");
+    }
+    count = 0;
   }
 }
 
+
+// get data form keypad
 void getKeypad() {
   inChar = keypad.getKey();
   switch (inChar) {
@@ -113,6 +169,31 @@ void getKeypad() {
   }
 }
 
+// get data form 18b20
+void getTemp() {
+  sensors.requestTemperatures();
+  tempC = sensors.getTempC(insideThermometer);
+}
+
+// eject coin
+void eject() {
+  for (int i = 0; i <= 2000; i++) {
+    myservo.write(0);
+    SoftwareServo::refresh();
+  }
+  for (int i = 0; i <= 2000; i++) {
+    myservo.write(180);
+    SoftwareServo::refresh();
+  }
+  for (int i = 0; i <= 2000; i++) {
+    myservo.write(0);
+    SoftwareServo::refresh();
+  }
+}
+
+
+
+/*************** setup program ***************/
 void setup() {
   Serial.begin(9600);
   mp3.begin (9600);
@@ -151,19 +232,25 @@ void setup() {
 
 }
 
-void getTemp() {
-  sensors.requestTemperatures();
-  tempC = sensors.getTempC(insideThermometer);
-}
 
+/*************** loop program ***************/
 void loop() {
+  //  coin(); // check coin insert
+
   DateTime now = rtc.now();
   lcd.setCursor(0, 0);
   lcd.print("   Noodle Vending   ");
   lcd.setCursor(0, 1);
   lcd.print("    15baht/1cup     ");
   lcd.setCursor(0, 2);
-  lcd.print(" Insert coin 5 / 10 ");
+  if (sum == 0) {
+    lcd.print(" Insert coin 5 / 10 ");
+  } else {
+    lcd.print("   Coin = ");
+    lcd.print(sum);
+    lcd.print(" baht   ");
+  }
+
   lcd.setCursor(0, 3);
   lcd.print(" ");
   lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
@@ -175,135 +262,60 @@ void loop() {
   lcd.print("   ");
 
   char customKey = keypad.getKey();
-  Serial.println(customKey);
 
-  if (customKey == 'A') {
-    myservo.write(0);
-    SoftwareServo::refresh();
-  }
-  if (customKey == 'B') {
-    myservo.write(90);
-    SoftwareServo::refresh();
-  }
-  if (customKey == 'C') {
-    myservo.write(180);
-    SoftwareServo::refresh();
-  }
-  if (customKey == 'D') {
-    Wire.beginTransmission(8);
-    Wire.write(1);
-    Wire.endTransmission();
-    Serial.println("key = A");
-  }
-
-  if (customKey == '#') {
+  if (sum >= 15) {
     lcd.clear();
     mode = 1;
-    delay(200);
-    Serial.println("mode = 1");
   }
 
-  //////// Mode 1 ////////
+
+  if (customKey == 'A') {
+    eject();
+  }
+  if (customKey == 'B') {
+    for (int i = 0; i <= 2000; i++) {
+      myservo.write(0);
+      SoftwareServo::refresh();
+    }
+  }
+  if (customKey == 'C') {
+    for (int i = 0; i <= 2000; i++) {
+      myservo.write(80);
+      SoftwareServo::refresh();
+    }
+  }
+  //  if (customKey == 'D') {
+  //    Wire.beginTransmission(8);
+  //    Wire.write(1);
+  //    Wire.endTransmission();
+  //    Serial.println("key = A");
+  //  }
+
+  if (customKey == '#') {
+    // goto admin mode
+    lcd.clear();
+    mode = 2;
+    delay(200);
+  }
+
+  //////// All Mode ////////
+
   while (mode == 1) {
-    Serial.print("mode 1 : ");
-    Serial.print(countPass);
-    Serial.print(" ");
-    Serial.print(numKey1);
-    Serial.print(" ");
-    Serial.print(numKey2);
-    Serial.print(" ");
-    Serial.print(numKey3);
-    Serial.print(" ");
-    Serial.println(numKey4);
-
-    lcd.setCursor(0, 0);
-    lcd.print("Admin Login         ");
-    lcd.setCursor(0, 1);
-    lcd.print(" password:");
-    lcd.setCursor(0, 2);
-    lcd.print("                    ");
-    lcd.setCursor(0, 3);
-    lcd.print("                    ");
-
-    getKeypad();
-    if (pressState == true) {
-      pressState = false;
-      lcd.setCursor(lcdCol, 1);
-      lcd.print(numKey);
-      countPass += 1;
-      lcdCol += 1;
-    }
-
-    if (countPass == 1) numKey1 = numKey;
-    if (countPass == 2) numKey2 = numKey;
-    if (countPass == 3) numKey3 = numKey;
-    if (countPass == 4) {
-      numKey4 = numKey;
-      String checkPass = String(numKey1) + String(numKey2) + String(numKey3) + String(numKey4);
-      if (checkPass == password) {
-        lcd.setCursor(0, 2);
-        lcd.print("      Suuccess.     ");
-        delay(2000);
-        lcd.clear();
-        lcdCol = 11;
-        countPass = 0;
-        mode = 2;
-      } else {
-        lcd.setCursor(0, 2);
-        lcd.print("   Fail try again.  ");
-        delay(2000);
-        lcd.clear();
-        lcdCol = 11;
-        countPass = 0;
-        mode = 1;
-      }
-    }
+    // select noodle
+    mode1();
   }
 
-  //////// Mode 2 ////////
   while (mode == 2) {
-    Serial.println("mode 2");
-    Serial.println(inChar);
-    lcd.setCursor(0, 0);
-    lcd.print("System check        ");
-    lcd.setCursor(0, 1);
-    lcd.print("Noodle in stock : ");
-    lcd.setCursor(17, 1);
-    if (noodle <= 9) lcd.print("0");
-    lcd.print(noodle);
-    lcd.setCursor(0, 2);
-    lcd.print("Play song : ");
-    lcd.print(inChar);
-    lcd.setCursor(0, 3);
-    lcd.print("Temp : ");
-    lcd.print(tempC);
-    lcd.print(" C");
-    delay(200);
+    // admin mode
+    mode2();
+  }
 
-    getKeypad();
-    getTemp();
-
-    if (inChar == '1') {
-      mp3_play(1);
-      delay(500);
-    } else if (inChar == '2') {
-      mp3_play(2);
-      delay(500);
-    } else if (inChar == '3') {
-      mp3_play(3);
-      delay(500);
-    } else if (inChar == '4') {
-      mp3_play(4);
-      delay(500);
-    } else if (inChar == '5') {
-      mp3_play(5);
-      delay(500);
-    } else if (inChar == '6') {
-      mp3_play(6);
-      delay(500);
-    } else if (inChar == '*') {
-      mp3_stop();
-      delay(500);
-    }
+  while (mode == 3) {
+    // System monitor
+    mode3();
+  }
+  while (mode == 4) {
+    // finish
+    mode4();
   }
 }
