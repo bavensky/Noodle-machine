@@ -19,19 +19,23 @@ void mode1() {
     lcdCol += 1;
   }
 
-  if(inChar == '*') {
-    mode = 0;
+  if (inChar == '*') {
     eject();
     delay(500);
     eject();
     delay(500);
     eject();
-  }
-  if(inChar == '#') {
     lcd.clear();
+    sum = 0;
+    mode = 0;
+
+  }
+  if (inChar == '#') {
+    lcd.clear();
+    sum = 0;
     mode = 4;
   }
-  
+
   if (countPass == 1) numKey1 = numKey;
   if (countPass == 2) {
     numKey2 = numKey;

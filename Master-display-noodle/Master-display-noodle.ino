@@ -117,10 +117,11 @@ byte countPass = 0, mode = 0, lcdCol = 11;
 boolean pressState = false;
 char inChar;
 byte data;
-int noodle = 0;
 int sum;
 int count = 0;
 float cal_coin;
+byte fstock1, fstock2, fstock3, fstock4, fstock5, bstock6;
+byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
 
 /*************** Sub function ***************/
 // read coin vending
@@ -200,8 +201,8 @@ void setup() {
   mp3_set_serial (mp3);
   mp3_set_volume (25);
 
-  EEPROM.write(eeAdd, noodle);
-  noodle = EEPROM.read(eeAdd);
+//  EEPROM.write(eeAdd, stockNoodle);
+  stockNoodle = EEPROM.read(stockNoodle);
 
   Wire.begin();
 
@@ -315,7 +316,7 @@ void loop() {
     mode3();
   }
   while (mode == 4) {
-    // finish
+    // get noodle
     mode4();
   }
 }
