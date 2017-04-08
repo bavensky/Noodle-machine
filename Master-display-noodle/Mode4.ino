@@ -1,8 +1,14 @@
 //////// Mode 4 Get noodle ///////
 void mode4() {
-  getKeypad();
+  unsigned long curGet = millis();
+  if (curGet - preGet >= 5000) {
+    preGet = curGet;
+    mp3_play(4);
+    countGet = countGet + 1;
+  }
 
-  stockNoodle = stockNoodle - 1;
+  getKeypad();
+  //  stockNoodle = stockNoodle - 1;
   lcd.setCursor(0, 0);
   lcd.print("Pick up your noodle!");
   lcd.setCursor(0, 1);
@@ -11,9 +17,13 @@ void mode4() {
   lcd.print("                    ");
   lcd.setCursor(0, 3);
   lcd.print("                    ");
-  delay(3000);
+  delay(200);
 
-  EEPROM.write(eeAdd, stockNoodle);
-  mode = 0;
+  //  EEPROM.write(eeAdd, stockNoodle);
+  if (countGet >= 3) {
+    dataNoodle = 0;
+    mode = 0;
+  }
+
 }
 

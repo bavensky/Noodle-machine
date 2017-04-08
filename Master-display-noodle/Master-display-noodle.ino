@@ -1,6 +1,9 @@
 /*
-   Noodle Vending Machine (Master Display)
-   BY RMUTL Senior Project
+   Instant Noodle Vending Machine (Master Display)
+   RMUTL Senior Project
+   Coder  : ArduinoSiam
+   Date   : 08/04/2560
+
    ---pin Connecting---
     I2C slave  :
       GND     GND
@@ -70,10 +73,6 @@
 #define PINSG9  2   // coin vending 
 #define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor
 
-
-// EEPROM address
-int eeAdd = 9;
-
 // init onewire comminication
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -87,7 +86,7 @@ char daysOfTheWeek[7][12] = {"   Sunday", "   Monday", "  Tuesday", "Wednesday",
 
 
 // init keypad 4x4
-#define password  "1234"
+#define password  "1111"
 const byte ROWS = 4;
 const byte COLS = 4;
 char keys[ROWS][COLS] = {
@@ -112,16 +111,49 @@ SoftwareServo myservo;
 
 
 // global variable
+
+// get keypad
 byte numKey, numKey1, numKey2, numKey3, numKey4;
+char inChar;
+
+// loop status
 byte countPass = 0, mode = 0, lcdCol = 11;
 boolean pressState = false;
-char inChar;
-byte data;
+
+// Get noodle count
+byte countGet;
+byte dataNoodle;
+
+
+// detect coin vending
 int sum;
 int count = 0;
 float cal_coin;
-byte fstock1, fstock2, fstock3, fstock4, fstock5, bstock6;
+
+// stock noodle
+byte stock = 12;  //  for caribation stock
+byte fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
 byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
+
+// EEPROM address for stock noodle
+byte f_stock1 = 1;
+byte f_stock2 = 2;
+byte f_stock3 = 3;
+byte f_stock4 = 4;
+byte f_stock5 = 5;
+byte f_stock6 = 6;
+byte b_stock1 = 7;
+byte b_stock2 = 8;
+byte b_stock3 = 9;
+byte b_stock4 = 10;
+byte b_stock5 = 11;
+byte b_stock6 = 12;
+
+
+// interval variable
+unsigned long preCoin = 0;
+unsigned long preSelect = 0;
+unsigned long preGet = 0;
 
 /*************** Sub function ***************/
 // read coin vending
@@ -196,28 +228,69 @@ void eject() {
 
 /*************** setup program ***************/
 void setup() {
+  // Serial
   Serial.begin(9600);
+
+  //  mp3
   mp3.begin (9600);
   mp3_set_serial (mp3);
   mp3_set_volume (25);
 
-//  EEPROM.write(eeAdd, stockNoodle);
-  stockNoodle = EEPROM.read(stockNoodle);
-
+  //  i2c
   Wire.begin();
 
-  pinMode(PINSG9, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(PINSG9), coin, LOW);
-
+  // sofeware servo
   myservo.attach(pinServo);
 
+
+  // ds18b20
   sensors.begin();
   sensors.getAddress(insideThermometer, 0);
   sensors.setResolution(insideThermometer, 9);
 
+
+  // rtc 1307
   rtc.begin();  // i2c address 0x68
   //  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
+
+  //  first time caribation noodle in stock
+//  stock = 12;
+//  EEPROM.write(f_stock1, stock);
+//  EEPROM.write(f_stock2, stock);
+//  EEPROM.write(f_stock3, stock);
+//  EEPROM.write(f_stock4, stock);
+//  EEPROM.write(f_stock5, stock);
+//  EEPROM.write(f_stock6, stock);
+//  EEPROM.write(b_stock1, stock);
+//  EEPROM.write(b_stock2, stock);
+//  EEPROM.write(b_stock3, stock);
+//  EEPROM.write(b_stock4, stock);
+//  EEPROM.write(b_stock5, stock);
+//  EEPROM.write(b_stock6, stock);
+//  delay(1000);
+
+  //  read EEPROM stock Noodle
+  fstock1 = EEPROM.read(f_stock1);
+  fstock2 = EEPROM.read(f_stock2);
+  fstock3 = EEPROM.read(f_stock3);
+  fstock4 = EEPROM.read(f_stock4);
+  fstock5 = EEPROM.read(f_stock5);
+  fstock6 = EEPROM.read(f_stock6);
+  bstock1 = EEPROM.read(b_stock1);
+  bstock2 = EEPROM.read(b_stock2);
+  bstock3 = EEPROM.read(b_stock3);
+  bstock4 = EEPROM.read(b_stock4);
+  bstock5 = EEPROM.read(b_stock5);
+  bstock6 = EEPROM.read(b_stock6);
+  delay(500);
+
+
+  // interrupt coin vending
+  pinMode(PINSG9, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PINSG9), coin, LOW);
+
+  // first display
   lcd.begin();
   lcd.backlight();
   lcd.setCursor(0, 0);
@@ -230,14 +303,11 @@ void setup() {
   lcd.print("RMUTL Senior Project");
   delay(1000);
   lcd.clear();
-
 }
 
 
 /*************** loop program ***************/
 void loop() {
-  //  coin(); // check coin insert
-
   DateTime now = rtc.now();
   lcd.setCursor(0, 0);
   lcd.print("   Noodle Vending   ");
@@ -269,6 +339,13 @@ void loop() {
     mode = 1;
   }
 
+  if (sum >= 5) {
+    unsigned long curCoin = millis();
+    if (curCoin - preCoin >= 5000) {
+      preCoin = curCoin;
+      mp3_play(2);
+    }
+  }
 
   if (customKey == 'A') {
     eject();
