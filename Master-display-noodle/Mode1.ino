@@ -53,6 +53,7 @@ void mode1() {
 
     if (dataNoodle > 12) {
       dataNoodle = 0;
+      Serial.println("qagesrhd");
       mode = 1;
     } else {
       updateNoodle();
