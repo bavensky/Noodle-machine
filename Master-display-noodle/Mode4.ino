@@ -8,19 +8,23 @@ void mode4() {
   }
 
   getKeypad();
-  //  stockNoodle = stockNoodle - 1;
+  getTemp();
+
   lcd.setCursor(0, 0);
   lcd.print("Pick up your noodle!");
   lcd.setCursor(0, 1);
   lcd.print("                    ");
   lcd.setCursor(0, 2);
-  lcd.print("                    ");
+  lcd.print("Hot water already...");
   lcd.setCursor(0, 3);
-  lcd.print("                    ");
+  lcd.print("Boiler temp: ");
+  lcd.print(tempC);
+  lcd.print("C");
   delay(200);
 
   //  EEPROM.write(eeAdd, stockNoodle);
   if (countGet >= 3) {
+    lcd.clear();
     dataNoodle = 0;
     mode = 0;
   }

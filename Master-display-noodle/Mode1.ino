@@ -52,9 +52,16 @@ void mode1() {
     dataNoodle = numKey2;
 
     if (dataNoodle > 12) {
+      countPass = 0;
+      numKey1 = 0;
+      numKey2 = 0;
       dataNoodle = 0;
-      Serial.println("qagesrhd");
-      mode = 1;
+      lcdCol = 11;
+
+      lcd.setCursor(0, 2);
+      lcd.print("Please select again ");
+      delay(1000);
+      lcd.clear();
     } else {
       updateNoodle();
       sum = 0;
@@ -64,10 +71,13 @@ void mode1() {
 }
 
 void updateNoodle() {
-  lcd.clear();
-  lcdCol = 11;
-  dataNoodle = 0;
+  Wire.beginTransmission(8);
+  Wire.write(dataNoodle);
+  Wire.endTransmission();
+  delay(1000);
 
+  
+  
   if (dataNoodle == 1) {
     fstock1 = fstock1 - 1;
     EEPROM.write(f_stock1, fstock1);
@@ -106,5 +116,8 @@ void updateNoodle() {
     EEPROM.write(b_stock6, bstock6);
   }
 
+  lcd.clear();
+  lcdCol = 11;
+  dataNoodle = 0;
 }
 

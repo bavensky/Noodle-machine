@@ -70,7 +70,10 @@
 
 /*************** Initail variable ***************/
 // define pin
-#define PINSG9  2   // coin vending 
+#define PINSG9  2   //  coin vending 
+#define heater  A0  
+#define flow    A2  
+#define light   A3
 #define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor
 
 // init onewire comminication
@@ -242,7 +245,12 @@ void setup() {
   // sofeware servo
   myservo.attach(pinServo);
 
-
+  // output control
+  pinMode(heater, OUTPUT);
+  pinMode(light, OUTPUT);
+  digitalWrite(heater, HIGH);
+  digitalWrite(light, HIGH);
+  
   // ds18b20
   sensors.begin();
   sensors.getAddress(insideThermometer, 0);
@@ -255,20 +263,20 @@ void setup() {
 
 
   //  first time caribation noodle in stock
-//  stock = 12;
-//  EEPROM.write(f_stock1, stock);
-//  EEPROM.write(f_stock2, stock);
-//  EEPROM.write(f_stock3, stock);
-//  EEPROM.write(f_stock4, stock);
-//  EEPROM.write(f_stock5, stock);
-//  EEPROM.write(f_stock6, stock);
-//  EEPROM.write(b_stock1, stock);
-//  EEPROM.write(b_stock2, stock);
-//  EEPROM.write(b_stock3, stock);
-//  EEPROM.write(b_stock4, stock);
-//  EEPROM.write(b_stock5, stock);
-//  EEPROM.write(b_stock6, stock);
-//  delay(1000);
+  //  stock = 12;
+  //  EEPROM.write(f_stock1, stock);
+  //  EEPROM.write(f_stock2, stock);
+  //  EEPROM.write(f_stock3, stock);
+  //  EEPROM.write(f_stock4, stock);
+  //  EEPROM.write(f_stock5, stock);
+  //  EEPROM.write(f_stock6, stock);
+  //  EEPROM.write(b_stock1, stock);
+  //  EEPROM.write(b_stock2, stock);
+  //  EEPROM.write(b_stock3, stock);
+  //  EEPROM.write(b_stock4, stock);
+  //  EEPROM.write(b_stock5, stock);
+  //  EEPROM.write(b_stock6, stock);
+  //  delay(1000);
 
   //  read EEPROM stock Noodle
   fstock1 = EEPROM.read(f_stock1);
@@ -362,14 +370,8 @@ void loop() {
       SoftwareServo::refresh();
     }
   }
-  //  if (customKey == 'D') {
-  //    Wire.beginTransmission(8);
-  //    Wire.write(1);
-  //    Wire.endTransmission();
-  //    Serial.println("key = A");
-  //  }
 
-  if (customKey == '#') {
+  if (customKey == 'D') {
     // goto admin mode
     lcd.clear();
     mode = 2;
