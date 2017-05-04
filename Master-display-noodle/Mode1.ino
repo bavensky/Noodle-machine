@@ -3,7 +3,7 @@ void mode1() {
   unsigned long curSelect = millis();
   if (curSelect - preSelect >= 5000) {
     preSelect = curSelect;
-    mp3_play(3);
+    mp3_play(3);  // กรุณาเลือกบะหมี่
   }
 
   lcd.setCursor(0, 0);

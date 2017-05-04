@@ -1,5 +1,9 @@
 //////// Mode 3 System monitor ///////
 void mode3() {
+  // clear waterState for make sure is repair 
+  waterState = false; 
+
+  
   //  byte fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
   //  byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
 
