@@ -119,7 +119,7 @@ byte numKey, numKey1, numKey2, numKey3, numKey4;
 char inChar;
 
 // loop status
-byte countPass = 0, mode = 0, lcdCol = 11;
+byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
 boolean pressState = false;
 
 // Get noodle count
@@ -244,8 +244,11 @@ void waterFail() {
   delay(500);
 }
 
-
-
+// command sent i2c to slave
+// 'A' ' 1'
+//  A ด้านหน้าตำแหน่งที่ 1 
+// 'B' ' 3'
+//  B ด้านหลังตำแหน่งที่ 3
 
 
 /*************** setup program ***************/
@@ -376,6 +379,9 @@ void loop() {
   // check coin if is ready to select noodle
   if (sum >= 15) {
     lcd.clear();
+    sum = sum - 15;
+    Serial.print("SUM = ");
+    Serial.println(sum);
     mode = 1;
   }
 
@@ -390,6 +396,10 @@ void loop() {
   char customKey = keypad.getKey();
   if (customKey == 'A') {
     eject();
+  }
+  if (customKey == 'B') {
+    lcd.clear();
+    mode = 1;
   }
   if (customKey == 'D') {
     // goto admin mode

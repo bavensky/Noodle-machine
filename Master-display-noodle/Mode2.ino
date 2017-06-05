@@ -31,6 +31,21 @@ void mode2() {
       lcd.clear();
       lcdCol = 11;
       countPass = 0;
+
+      fstock1 = EEPROM.read(f_stock1);
+      fstock2 = EEPROM.read(f_stock2);
+      fstock3 = EEPROM.read(f_stock3);
+      fstock4 = EEPROM.read(f_stock4);
+      fstock5 = EEPROM.read(f_stock5);
+      fstock6 = EEPROM.read(f_stock6);
+      bstock1 = EEPROM.read(b_stock1);
+      bstock2 = EEPROM.read(b_stock2);
+      bstock3 = EEPROM.read(b_stock3);
+      bstock4 = EEPROM.read(b_stock4);
+      bstock5 = EEPROM.read(b_stock5);
+      bstock6 = EEPROM.read(b_stock6);
+      delay(500);
+
       mode = 3;
     } else {
       lcd.setCursor(0, 2);

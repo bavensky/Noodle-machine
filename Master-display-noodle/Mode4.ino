@@ -1,5 +1,5 @@
 //////// Mode 4 Get noodle ///////
-void mode4() {
+void mode4() { 
   unsigned long curGet = millis();
   if (curGet - preGet >= 5000) {
     preGet = curGet;

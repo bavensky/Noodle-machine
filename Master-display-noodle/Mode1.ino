@@ -39,6 +39,31 @@ void mode1() {
 
   if (inChar == '#') {
     updateNoodle();
+
+    if (sum > 0) {
+      sum = sum / 5;
+    }
+
+    if (sum == 1) {
+      eject();
+      delay(500);
+    } else if (sum == 2) {
+      eject();
+      delay(500);
+      eject();
+      delay(500);
+    } else if (sum == 3) {
+      eject();
+      delay(500);
+      eject();
+      delay(500);
+      eject();
+      delay(500);
+    }
+
+
+    Serial.print("SUM1 = ");
+    Serial.println(sum);
     sum = 0;
     mode = 4;
   }
@@ -64,6 +89,30 @@ void mode1() {
       lcd.clear();
     } else {
       updateNoodle();
+
+      if (sum > 0) {
+        sum = sum / 5;
+      }
+
+      if (sum == 1) {
+        eject();
+        delay(500);
+      } else if (sum == 2) {
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+      } else if (sum == 3) {
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+      }
+
+      Serial.print("SUM2 = ");
+      Serial.println(sum);
       sum = 0;
       mode = 4;
     }
@@ -76,8 +125,7 @@ void updateNoodle() {
   Wire.endTransmission();
   delay(1000);
 
-  
-  
+
   if (dataNoodle == 1) {
     fstock1 = fstock1 - 1;
     EEPROM.write(f_stock1, fstock1);
