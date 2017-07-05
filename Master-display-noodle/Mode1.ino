@@ -1,5 +1,7 @@
 //////// Mode 1 select noodle ///////
 void mode1() {
+  Serial.println("select noodle mode");
+
   unsigned long curSelect = millis();
   if (curSelect - preSelect >= 5000) {
     preSelect = curSelect;
@@ -7,13 +9,13 @@ void mode1() {
   }
 
   lcd.setCursor(0, 0);
-  lcd.print("Select your noodle: ");
+  lcd.print("Select Your Noodles ");
   lcd.setCursor(0, 1);
-  lcd.print(" number : ");
+  lcd.print(" Number : ");
   lcd.setCursor(0, 2);
   lcd.print("                    ");
   lcd.setCursor(0, 3);
-  lcd.print("'*' back   '#' enter");
+  lcd.print("* Clear    # Confirm");
 
   getKeypad();
   if (pressState == true) {
@@ -37,46 +39,10 @@ void mode1() {
   }
 
 
+  // choose noodle finish
   if (inChar == '#') {
-    updateNoodle();
-
-    if (sum > 0) {
-      sum = sum / 5;
-    }
-
-    if (sum == 1) {
-      eject();
-      delay(500);
-    } else if (sum == 2) {
-      eject();
-      delay(500);
-      eject();
-      delay(500);
-    } else if (sum == 3) {
-      eject();
-      delay(500);
-      eject();
-      delay(500);
-      eject();
-      delay(500);
-    }
-
-
-    Serial.print("SUM1 = ");
-    Serial.println(sum);
-    sum = 0;
-    mode = 4;
-  }
-
-  if (countPass == 1) numKey1 = numKey;
-  if (countPass == 2) {
-    numKey2 = numKey;
-
-    numKey1 = numKey1 * 10;
-    numKey2 = numKey1 + numKey2;
-    dataNoodle = numKey2;
-
-    if (dataNoodle > 12) {
+    //    checkStock();
+    if (dataNoodle == 0) {
       countPass = 0;
       numKey1 = 0;
       numKey2 = 0;
@@ -84,7 +50,7 @@ void mode1() {
       lcdCol = 11;
 
       lcd.setCursor(0, 2);
-      lcd.print("Please select again ");
+      lcd.print("   Invalid Number!  ");
       delay(1000);
       lcd.clear();
     } else {
@@ -111,20 +77,200 @@ void mode1() {
         delay(500);
       }
 
-      Serial.print("SUM2 = ");
-      Serial.println(sum);
+      sum = 0;
+      mode = 4;
+    }
+  }
+
+  if (countPass == 1) numKey1 = numKey;
+  if (countPass == 2) {
+    numKey2 = numKey;
+
+    numKey1 = numKey1 * 10;
+    numKey2 = numKey1 + numKey2;
+    dataNoodle = numKey2;
+
+    //    checkStock();
+    if (dataNoodle > 12) {
+      countPass = 0;
+      numKey1 = 0;
+      numKey2 = 0;
+      dataNoodle = 0;
+      lcdCol = 11;
+      mode = 1;
+      lcd.setCursor(0, 2);
+      lcd.print("   Invalid Number!  ");
+      delay(1000);
+      lcd.clear();
+    } else {
+      if (sum > 0) {
+        sum = sum / 5;
+      }
+
+      if (sum == 1) {
+        eject();
+        delay(500);
+      } else if (sum == 2) {
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+      } else if (sum == 3) {
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+        eject();
+        delay(500);
+      }
+
+      updateNoodle();
+
       sum = 0;
       mode = 4;
     }
   }
 }
 
+
+
+// clear data
+void clearChoice() {
+  countPass = 0;
+  numKey1 = 0;
+  numKey2 = 0;
+  dataNoodle = 0;
+  lcdCol = 11;
+
+  lcd.setCursor(0, 2);
+  lcd.print("  Out of Stock !!!  ");
+  delay(1000);
+  lcd.clear();
+}
+
+
+
+// check noodle in stock
+//void checkStock() {
+//  fstock1 = EEPROM.read(f_stock1);
+//  fstock2 = EEPROM.read(f_stock2);
+//  fstock3 = EEPROM.read(f_stock3);
+//  fstock4 = EEPROM.read(f_stock4);
+//  fstock5 = EEPROM.read(f_stock5);
+//  fstock6 = EEPROM.read(f_stock6);
+//  bstock1 = EEPROM.read(b_stock1);
+//  bstock2 = EEPROM.read(b_stock2);
+//  bstock3 = EEPROM.read(b_stock3);
+//  bstock4 = EEPROM.read(b_stock4);
+//  bstock5 = EEPROM.read(b_stock5);
+//  bstock6 = EEPROM.read(b_stock6);
+//
+//  Serial.print("checkStock ");
+//  Serial.println(fstock1);
+//  delay(2000);
+//
+//  // if noodle cup out of stock
+//  if (fstock1 == 0 && fstock2 == 0 && fstock3 == 0 && fstock4 == 0 && fstock5 == 0 && fstock6 == 0
+//      && bstock1 == 0 && bstock2 == 0 && bstock3 == 0 && bstock4 == 0 && bstock5 == 0 && bstock6 == 0) {
+//    noodleState = true;
+//    Serial.println("noodleState = true");
+//    clearChoice();
+//  }
+//
+//  // if your noodle out of stock
+//  if (dataNoodle == fstock1 && fstock1 == 0) {
+//    Serial.println("clearChoice");
+//    clearChoice();
+//  } else if (dataNoodle == fstock2 && fstock2 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == fstock3 && fstock3 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == fstock4 && fstock4 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == fstock5 && fstock5 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == fstock6 && fstock6 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock1 && bstock1 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock2 && bstock2 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock3 && bstock3 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock4 && bstock4 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock5 && bstock5 == 0) {
+//    clearChoice();
+//  } else if (dataNoodle == bstock6 && bstock6 == 0) {
+//    clearChoice();
+//  }
+//}
+
+
+
+// update noodle stock and send data to slave mcu
 void updateNoodle() {
+  fstock1 = EEPROM.read(f_stock1);
+  fstock2 = EEPROM.read(f_stock2);
+  fstock3 = EEPROM.read(f_stock3);
+  fstock4 = EEPROM.read(f_stock4);
+  fstock5 = EEPROM.read(f_stock5);
+  fstock6 = EEPROM.read(f_stock6);
+  bstock1 = EEPROM.read(b_stock1);
+  bstock2 = EEPROM.read(b_stock2);
+  bstock3 = EEPROM.read(b_stock3);
+  bstock4 = EEPROM.read(b_stock4);
+  bstock5 = EEPROM.read(b_stock5);
+  bstock6 = EEPROM.read(b_stock6);
+
+  Serial.print("checkStock ");
+  Serial.println(fstock1);
+  delay(2000);
+
+  // if noodle cup out of stock
+  if (fstock1 == 0 && fstock2 == 0 && fstock3 == 0 && fstock4 == 0 && fstock5 == 0 && fstock6 == 0
+      && bstock1 == 0 && bstock2 == 0 && bstock3 == 0 && bstock4 == 0 && bstock5 == 0 && bstock6 == 0) {
+    noodleState = true;
+    Serial.println("noodleState = true");
+    clearChoice();
+  }
+
+  // if your noodle out of stock
+  if (dataNoodle == fstock1 && fstock1 == 0) {
+    Serial.println("clearChoice");
+    clearChoice();
+  } else if (dataNoodle == fstock2 && fstock2 == 0) {
+    clearChoice();
+  } else if (dataNoodle == fstock3 && fstock3 == 0) {
+    clearChoice();
+  } else if (dataNoodle == fstock4 && fstock4 == 0) {
+    clearChoice();
+  } else if (dataNoodle == fstock5 && fstock5 == 0) {
+    clearChoice();
+  } else if (dataNoodle == fstock6 && fstock6 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock1 && bstock1 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock2 && bstock2 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock3 && bstock3 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock4 && bstock4 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock5 && bstock5 == 0) {
+    clearChoice();
+  } else if (dataNoodle == bstock6 && bstock6 == 0) {
+    clearChoice();
+  }
+
+
+
+
+  // update noodle
   Wire.beginTransmission(8);
   Wire.write(dataNoodle);
   Wire.endTransmission();
   delay(1000);
-
 
   if (dataNoodle == 1) {
     fstock1 = fstock1 - 1;
@@ -168,4 +314,3 @@ void updateNoodle() {
   lcdCol = 11;
   dataNoodle = 0;
 }
-

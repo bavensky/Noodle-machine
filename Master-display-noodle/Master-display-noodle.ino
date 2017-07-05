@@ -66,15 +66,17 @@
 #include <SoftwareServo.h>
 #include <DFPlayer_Mini_Mp3.h>
 #include <EEPROM.h>
-
+#include <FreqMeasure.h>
 
 /*************** Initail variable ***************/
 // define pin
-#define PINSG9  2   //  coin vending 
+#define PINSG6  2   //  coin vending 
 #define heater  A0
 #define flow    A2
 #define light   A3
 #define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor
+
+byte countFlow = 0;
 
 // init onewire comminication
 OneWire oneWire(ONE_WIRE_BUS);
@@ -123,6 +125,7 @@ byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
 boolean pressState = false;
 
 // Get noodle count
+byte countHeater;
 byte countGet;
 byte dataNoodle;
 
@@ -157,22 +160,28 @@ byte b_stock6 = 12;
 unsigned long preCoin = 0;
 unsigned long preSelect = 0;
 unsigned long preGet = 0;
+unsigned long preHeat = 0;
+
+
+// status variable
+boolean noodleState = false;
+boolean tempState = false;
 boolean waterState = false;
 
 /*************** Sub function ***************/
 // read coin vending
 void coin() {
   unsigned long duration;
-  for (int i = 0; i <= 10; i++)  {
-    duration = pulseIn(PINSG9, LOW, 1000000);
-    cal_coin = duration / 1000.00;
-    Serial.print("DelT=");
-    Serial.print(cal_coin);
-    Serial.println(" ms");
-    if (cal_coin > 2) {
-      count = count + 1;
-    }
+  //  for (int i = 0; i <= 10; i++)  {
+  duration = pulseIn(PINSG6, HIGH, 1000000);
+  cal_coin = duration / 1000.00;
+  Serial.print("DelT=");
+  Serial.print(cal_coin);
+  Serial.println(" ms");
+  if (cal_coin > 2) {
+    count = count + 1;
   }
+  //  }
 
   if (cal_coin == 0) {
     if (count > 3 && count < 7) {
@@ -202,7 +211,16 @@ void getKeypad() {
     case '8': numKey = 8; pressState = true;  break;
     case '9': numKey = 9; pressState = true;  break;
     case '0': numKey = 0; pressState = true;  break;
-    case '#': lcdCol = 11;  lcd.clear(); countPass = 0;  mode = 0; pressState = false; break;
+    case '#':
+      lcdCol = 11;
+      lcd.clear();
+      countPass = 0;
+      mode = 0;
+      pressState = false;
+      countPass = 0;
+      numKey1 = 0;
+      numKey2 = 0;
+      break;
   }
 }
 
@@ -228,25 +246,9 @@ void eject() {
   }
 }
 
-// warning water not flow
-void waterFail() {
-  lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("     Warning !!!    ");
-  lcd.setCursor(0, 1);
-  lcd.print("   Water not flow   ");
-  lcd.setCursor(0, 2);
-  lcd.print("                    ");
-  lcd.setCursor(0, 3);
-  lcd.print("  Tel. 08X-XXX-XXXX ");
-  delay(500);
-  lcd.noBacklight();
-  delay(500);
-}
-
 // command sent i2c to slave
 // 'A' ' 1'
-//  A ด้านหน้าตำแหน่งที่ 1 
+//  A ด้านหน้าตำแหน่งที่ 1
 // 'B' ' 3'
 //  B ด้านหลังตำแหน่งที่ 3
 
@@ -255,6 +257,10 @@ void waterFail() {
 void setup() {
   // Serial
   Serial.begin(9600);
+
+
+  // Frequency flow water
+  FreqMeasure.begin();
 
   //  mp3
   mp3.begin (9600);
@@ -283,23 +289,6 @@ void setup() {
   rtc.begin();  // i2c address 0x68
   //  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
-
-  //  first time caribation noodle in stock
-  //  stock = 12;
-  //  EEPROM.write(f_stock1, stock);
-  //  EEPROM.write(f_stock2, stock);
-  //  EEPROM.write(f_stock3, stock);
-  //  EEPROM.write(f_stock4, stock);
-  //  EEPROM.write(f_stock5, stock);
-  //  EEPROM.write(f_stock6, stock);
-  //  EEPROM.write(b_stock1, stock);
-  //  EEPROM.write(b_stock2, stock);
-  //  EEPROM.write(b_stock3, stock);
-  //  EEPROM.write(b_stock4, stock);
-  //  EEPROM.write(b_stock5, stock);
-  //  EEPROM.write(b_stock6, stock);
-  //  delay(1000);
-
   //  read EEPROM stock Noodle
   fstock1 = EEPROM.read(f_stock1);
   fstock2 = EEPROM.read(f_stock2);
@@ -317,47 +306,48 @@ void setup() {
 
 
   // interrupt coin vending
-  pinMode(PINSG9, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(PINSG9), coin, LOW);
+  pinMode(PINSG6, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PINSG6), coin, CHANGE);
 
   // first display
   lcd.begin();
   lcd.backlight();
   lcd.setCursor(0, 0);
-  lcd.print("       Noodle       ");
+  lcd.print("   Instant Noodles  ");
   lcd.setCursor(0, 1);
-  lcd.print("   VendingMachine   ");
+  lcd.print("   Vending Machine  ");
   lcd.setCursor(0, 2);
   lcd.print("                    ");
   lcd.setCursor(0, 3);
   lcd.print("RMUTL Senior Project");
-  delay(1000);
+  delay(2000);
   lcd.clear();
 }
 
 
 /*************** loop program ***************/
 void loop() {
-  Serial.println(analogRead(flow));
-  delay(200);
+  Serial.println("main mode");
+  digitalWrite(heater, HIGH);
 
   DateTime now = rtc.now();
   lcd.setCursor(0, 0);
-  lcd.print("   Noodle Vending   ");
+  lcd.print("   Instant Noodles  ");
   lcd.setCursor(0, 1);
-  lcd.print("    15baht/1cup     ");
+  lcd.print("    15Baht/1cup     ");
   lcd.setCursor(0, 2);
   if (sum == 0) {
-    lcd.print(" Insert coin 5 / 10 ");
+    lcd.print("  Insert Coin 5/10  ");
   } else {
-    lcd.print("   Coin = ");
+    lcd.print(" Balance :  ");
     lcd.print(sum);
-    lcd.print(" baht   ");
+    lcd.print(" Baht   ");
   }
 
   lcd.setCursor(0, 3);
   lcd.print(" ");
   lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+  lcd.print("  ");
   lcd.setCursor(12, 3);
   if (now.hour() <= 9) lcd.print("0");
   lcd.print(now.hour());
@@ -367,6 +357,8 @@ void loop() {
   lcd.print("   ");
 
 
+
+  // light mode
   if (now.hour() >= 0 && now.hour() <= 6) {
     digitalWrite(light, LOW);
   } else if (now.hour() >= 18 && now.hour() <= 23) {
@@ -376,7 +368,8 @@ void loop() {
   }
 
 
-  // check coin if is ready to select noodle
+
+  //  check coin if is ready to select noodle
   if (sum >= 15) {
     lcd.clear();
     sum = sum - 15;
@@ -393,6 +386,14 @@ void loop() {
     }
   }
 
+
+
+  //  warning detect
+  if (noodleState == true || tempState == true || waterState == true) {
+    mode = 5;
+  }
+
+  // debug
   char customKey = keypad.getKey();
   if (customKey == 'A') {
     eject();
@@ -401,20 +402,22 @@ void loop() {
     lcd.clear();
     mode = 1;
   }
+  if (customKey == 'C') {
+    lcd.clear();
+    mode = 5;
+  }
   if (customKey == 'D') {
     // goto admin mode
     lcd.clear();
     mode = 2;
-    delay(200);
   }
+
+
+
+
+
 
   //////// All Mode ////////
-
-  // warning hot water not flow
-  if (waterState == true) {
-    waterFail();
-  }
-
   while (mode == 1) {
     // select noodle
     mode1();
@@ -429,8 +432,14 @@ void loop() {
     // System monitor
     mode3();
   }
+  
   while (mode == 4) {
     // get noodle
     mode4();
+  }
+  
+  while (mode == 5) {
+    // Warning mode
+    mode5();
   }
 }

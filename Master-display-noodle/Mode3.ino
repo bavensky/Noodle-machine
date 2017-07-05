@@ -1,16 +1,19 @@
 //////// Mode 3 System monitor ///////
 void mode3() {
-  // clear waterState for make sure is repair
+  Serial.println("System monitor mode");
+  
+  // clear Status for make sure is repair
+  noodleState = false;
+  tempState = false;
   waterState = false;
-
-
-  //  byte fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
-  //  byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
+  
+  //  fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
+  //  bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
 
   getKeypad();
 
   lcd.setCursor(0, 0);
-  lcd.print("Noodle in stock : ");
+  lcd.print("Noodles In Stock :");
 
   lcd.setCursor(0, 1);
   lcd.print("  ");
@@ -42,8 +45,8 @@ void mode3() {
   if (bstock6 <= 9)   lcd.print("0");
   lcd.print(bstock6); lcd.print(" ");
 
-  lcd.setCursor(0, 3);
-  lcd.print("                    ");
+  //  lcd.setCursor(0, 3);
+  //  lcd.print("* Clear    # Confirm");
   delay(200);
 
   if (inChar == '#') {
@@ -77,8 +80,11 @@ void mode3() {
 
   if (stateAdmin == 1) {
     lcd.setCursor(0, 3);
-    lcd.print("Clear stock  * >> Ok");
+    lcd.print("Restock? *:Ok #:Back");
     delay(200);
+  } else {
+    lcd.setCursor(0, 3);
+    lcd.print("* Clear    # Confirm");
   }
 
   //  if (inChar == '1') {

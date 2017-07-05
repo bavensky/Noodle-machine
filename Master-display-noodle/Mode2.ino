@@ -1,9 +1,11 @@
 //////// Mode 2 admin mode ///////
 void mode2() {
+  Serial.println("admin mode");
+    
   lcd.setCursor(0, 0);
   lcd.print("Admin Login         ");
   lcd.setCursor(0, 1);
-  lcd.print(" password:");
+  lcd.print(" Password:");
   lcd.setCursor(0, 2);
   lcd.print("                    ");
   lcd.setCursor(0, 3);
@@ -26,7 +28,7 @@ void mode2() {
     String checkPass = String(numKey1) + String(numKey2) + String(numKey3) + String(numKey4);
     if (checkPass == password) {
       lcd.setCursor(0, 2);
-      lcd.print("      Suuccess.     ");
+      lcd.print("   Login Success    ");
       delay(2000);
       lcd.clear();
       lcdCol = 11;
@@ -49,7 +51,7 @@ void mode2() {
       mode = 3;
     } else {
       lcd.setCursor(0, 2);
-      lcd.print("   Fail try again.  ");
+      lcd.print(" Incorrect Password ");
       delay(2000);
       lcd.clear();
       lcdCol = 11;
