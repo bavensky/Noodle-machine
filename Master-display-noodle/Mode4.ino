@@ -1,9 +1,17 @@
 //////// Mode 4 Get noodle ///////
 void mode4() {
+  // print mode are in
   Serial.println("Get noodle mode");
 
+
+  // get data from keypad
   getKeypad();
+
+
+  // get data temperature
   getTemp();
+
+
 
   // sound loop
   unsigned long curGet = millis();
@@ -18,7 +26,11 @@ void mode4() {
     countGet = countGet + 1;
   }
 
+
+  // exit mode
   if (countGet > 7) {
+
+    // check water temperature
     if (tempC < 50) {
       tempState = true;
     } else {
@@ -52,7 +64,7 @@ void mode4() {
   //   worming water detecter
   if (FreqMeasure.available()) {
     if (tempC >= 70) {
-      digitalWrite(heater, HIGH);
+      digitalWrite(heater, HIGH); // heater OFF
     } else {
       countFlow += 1;
       Serial.print("FreqMeasure : ");
@@ -69,11 +81,11 @@ void mode4() {
 
 
 
-
+  // mode 4 display
   lcd.setCursor(0, 0);
   lcd.print("Pick Up Your Noodles");
   lcd.setCursor(0, 1);
-  lcd.print("  Temp =  ");
+  lcd.print(" Water Temp : ");
   lcd.print(tempC);
   lcd.print(" C    ");
   lcd.setCursor(0, 2);

@@ -1,13 +1,19 @@
 //////// Mode 1 select noodle ///////
 void mode1() {
+  // print mode are in
   Serial.println("select noodle mode");
 
+
+  // interval sound speaker
   unsigned long curSelect = millis();
   if (curSelect - preSelect >= 5000) {
     preSelect = curSelect;
     mp3_play(3);  // กรุณาเลือกบะหมี่
   }
 
+
+
+  // mode 1 display
   lcd.setCursor(0, 0);
   lcd.print("Select Your Noodles ");
   lcd.setCursor(0, 1);
@@ -17,6 +23,8 @@ void mode1() {
   lcd.setCursor(0, 3);
   lcd.print("* Clear    # Confirm");
 
+
+  // get keypad for select noodle
   getKeypad();
   if (pressState == true) {
     pressState = false;
@@ -27,6 +35,8 @@ void mode1() {
     lcdCol += 1;
   }
 
+
+  // exit choose noodle and refund 15 baht
   if (inChar == '*') {
     eject();
     delay(500);
@@ -39,7 +49,8 @@ void mode1() {
   }
 
 
-  // choose noodle finish
+
+  //  choose noodle finish
   if (inChar == '#') {
     //    checkStock();
     if (dataNoodle == 0) {
@@ -77,10 +88,12 @@ void mode1() {
         delay(500);
       }
 
-      sum = 0;
-      mode = 4;
+      //      sum = 0;
+      //      mode = 4;
     }
   }
+
+
 
   if (countPass == 1) numKey1 = numKey;
   if (countPass == 2) {
@@ -126,8 +139,8 @@ void mode1() {
 
       updateNoodle();
 
-      sum = 0;
-      mode = 4;
+      //      sum = 0;
+      //      mode = 4;
     }
   }
 }
@@ -139,7 +152,7 @@ void clearChoice() {
   countPass = 0;
   numKey1 = 0;
   numKey2 = 0;
-  dataNoodle = 0;
+  //  dataNoodle = 0;
   lcdCol = 11;
 
   lcd.setCursor(0, 2);
@@ -208,6 +221,7 @@ void clearChoice() {
 
 
 
+
 // update noodle stock and send data to slave mcu
 void updateNoodle() {
   fstock1 = EEPROM.read(f_stock1);
@@ -233,7 +247,10 @@ void updateNoodle() {
     noodleState = true;
     Serial.println("noodleState = true");
     clearChoice();
+    mode = 0;
   }
+
+
 
   // if your noodle out of stock
   if (dataNoodle == fstock1 && fstock1 == 0) {
@@ -265,13 +282,15 @@ void updateNoodle() {
 
 
 
-
-  // update noodle
+  // sent data to slave mcu
   Wire.beginTransmission(8);
   Wire.write(dataNoodle);
   Wire.endTransmission();
   delay(1000);
 
+
+
+  // update noodle in eeprom
   if (dataNoodle == 1) {
     fstock1 = fstock1 - 1;
     EEPROM.write(f_stock1, fstock1);
@@ -310,7 +329,12 @@ void updateNoodle() {
     EEPROM.write(b_stock6, bstock6);
   }
 
+
+
+  // clear data
   lcd.clear();
   lcdCol = 11;
   dataNoodle = 0;
+  sum = 0;
+  mode = 4;
 }

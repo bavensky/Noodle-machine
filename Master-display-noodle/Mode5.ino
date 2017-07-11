@@ -1,7 +1,11 @@
 //////// Mode 5 Warning mode ///////
 void mode5() {
+  // print mode are in
   Serial.println("warning mode");
 
+
+
+  // backlight loop
   unsigned long curGet = millis();
   if (curGet - preGet >= 1000) {
     lcd.noBacklight();
@@ -10,6 +14,9 @@ void mode5() {
     lcd.backlight();
   }
 
+
+
+  // mode 5 display
   lcd.setCursor(0, 0);
   lcd.print("     Warning !!!    ");
   lcd.setCursor(0, 1);
@@ -20,6 +27,8 @@ void mode5() {
   lcd.print("                    ");
 
 
+
+  // exit mode for fix machine
   char customKey = keypad.getKey();
   if (customKey == 'D') {
     lcd.backlight();
@@ -27,7 +36,7 @@ void mode5() {
     noodleState = false;
     tempState = false;
     waterState = false;
-    mode = 0;
+    mode = 2;
   }
 }
 

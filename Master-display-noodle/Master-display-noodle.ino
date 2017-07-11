@@ -392,12 +392,15 @@ void loop() {
 
 
 
+
   //  warning detect
   if (noodleState == true || tempState == true || waterState == true) {
     mode = 5;
   }
 
-  // debug
+
+
+  // debug mode
   char customKey = keypad.getKey();
   if (customKey == 'A') {
     eject();

@@ -1,7 +1,10 @@
 //////// Mode 2 admin mode ///////
 void mode2() {
+  // print mode are in
   Serial.println("admin mode");
-    
+
+
+  // mode 2 display
   lcd.setCursor(0, 0);
   lcd.print("Admin Login         ");
   lcd.setCursor(0, 1);
@@ -11,6 +14,9 @@ void mode2() {
   lcd.setCursor(0, 3);
   lcd.print("                    ");
 
+
+
+  //  get data from keypad
   getKeypad();
   if (pressState == true) {
     pressState = false;
@@ -20,12 +26,17 @@ void mode2() {
     lcdCol += 1;
   }
 
+
+
+  // insert password
   if (countPass == 1) numKey1 = numKey;
   if (countPass == 2) numKey2 = numKey;
   if (countPass == 3) numKey3 = numKey;
   if (countPass == 4) {
     numKey4 = numKey;
     String checkPass = String(numKey1) + String(numKey2) + String(numKey3) + String(numKey4);
+
+    // check password
     if (checkPass == password) {
       lcd.setCursor(0, 2);
       lcd.print("   Login Success    ");
