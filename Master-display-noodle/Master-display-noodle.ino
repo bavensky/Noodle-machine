@@ -328,9 +328,13 @@ void setup() {
 /*************** loop program ***************/
 void loop() {
   Serial.println("main mode");
-  digitalWrite(heater, HIGH);
+  digitalWrite(heater, HIGH); // set heater default
 
-  DateTime now = rtc.now();
+  DateTime now = rtc.now();   //  read time now
+
+
+
+  // main display
   lcd.setCursor(0, 0);
   lcd.print("   Instant Noodles  ");
   lcd.setCursor(0, 1);
@@ -343,7 +347,6 @@ void loop() {
     lcd.print(sum);
     lcd.print(" Baht   ");
   }
-
   lcd.setCursor(0, 3);
   lcd.print(" ");
   lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
@@ -358,6 +361,7 @@ void loop() {
 
 
 
+
   // light mode
   if (now.hour() >= 0 && now.hour() <= 6) {
     digitalWrite(light, LOW);
@@ -369,7 +373,7 @@ void loop() {
 
 
 
-  //  check coin if is ready to select noodle
+  //  check coin if It's enough
   if (sum >= 15) {
     lcd.clear();
     sum = sum - 15;

@@ -31,10 +31,6 @@ void mode4() {
     mode = 0;
   }
 
-  if (tempC >= 70) {
-    digitalWrite(heater, HIGH);
-  }
-
   //     heater loop
   //  if (curGet - preHeat >= 15000) {
   //    countHeater += 1;
@@ -55,13 +51,17 @@ void mode4() {
 
   //   worming water detecter
   if (FreqMeasure.available()) {
-    countFlow += 1;
-    Serial.print("FreqMeasure : ");
-    Serial.println(countFlow);
-    //      digitalWrite(heater, LOW); // heater ON
-    if (countFlow >= 5000) {
+    if (tempC >= 70) {
       digitalWrite(heater, HIGH);
-      countFlow = 0;
+    } else {
+      countFlow += 1;
+      Serial.print("FreqMeasure : ");
+      Serial.println(countFlow);
+      digitalWrite(heater, LOW); // heater ON
+      if (countFlow >= 100) {
+        digitalWrite(heater, HIGH);
+        countFlow = 0;
+      }
     }
   } else {
     digitalWrite(heater, HIGH);  // heater OFF
@@ -80,6 +80,5 @@ void mode4() {
   lcd.print(" Hot Water Is Ready ");
   lcd.setCursor(0, 3);
   lcd.print("   Dispenser Below  ");
-  delay(200);
 }
 
