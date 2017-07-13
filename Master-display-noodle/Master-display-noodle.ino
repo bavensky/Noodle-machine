@@ -66,7 +66,7 @@
 #include <SoftwareServo.h>
 #include <DFPlayer_Mini_Mp3.h>
 #include <EEPROM.h>
-#include <FreqMeasure.h>
+//#include <FreqMeasure.h>
 
 /*************** Initail variable ***************/
 // define pin
@@ -131,8 +131,8 @@ byte dataNoodle;
 
 
 // detect coin vending
-int sum;
-int count = 0;
+byte sum;
+byte count = 0;
 float cal_coin;
 
 // stock noodle
@@ -260,7 +260,7 @@ void setup() {
 
 
   // Frequency flow water
-  FreqMeasure.begin();
+  //  FreqMeasure.begin();
 
   //  mp3
   mp3.begin (9600);
@@ -411,7 +411,7 @@ void loop() {
   }
   if (customKey == 'C') {
     lcd.clear();
-    mode = 5;
+    mode = 4;
   }
   if (customKey == 'D') {
     // goto admin mode
@@ -439,12 +439,12 @@ void loop() {
     // System monitor
     mode3();
   }
-  
+
   while (mode == 4) {
     // get noodle
     mode4();
   }
-  
+
   while (mode == 5) {
     // Warning mode
     mode5();
