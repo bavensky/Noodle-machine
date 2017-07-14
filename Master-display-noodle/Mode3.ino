@@ -50,10 +50,6 @@ void mode3() {
   if (bstock6 <= 9)   lcd.print("0");
   lcd.print(bstock6); lcd.print(" ");
 
-  //  lcd.setCursor(0, 3);
-  //  lcd.print("* Clear    # Confirm");
-
-
 
   // exit admin mode
   if (inChar == '#') {
@@ -68,7 +64,13 @@ void mode3() {
     stateAdmin += 1;
   }
 
-
+  if (stateAdmin == 1) {
+    lcd.setCursor(0, 3);
+    lcd.print("Restock? *:Ok #:Back");
+  } else {
+    lcd.setCursor(0, 3);
+    lcd.print("* Clear    # Confirm");
+  }
 
   // ensure for clear data noodle stock
   if (inChar == '*' && stateAdmin == 2) {
@@ -90,36 +92,5 @@ void mode3() {
     stateAdmin = 0;
     mode = 0;
   }
-
-  if (stateAdmin == 1) {
-    lcd.setCursor(0, 3);
-    lcd.print("Restock? *:Ok #:Back");
-  } else {
-    lcd.setCursor(0, 3);
-    lcd.print("* Clear    # Confirm");
-  }
-
-  //  if (inChar == '1') {
-  //    mp3_play(1);
-  //    delay(500);
-  //  } else if (inChar == '2') {
-  //    mp3_play(2);
-  //    delay(500);
-  //  } else if (inChar == '3') {
-  //    mp3_play(3);
-  //    delay(500);
-  //  } else if (inChar == '4') {
-  //    mp3_play(4);
-  //    delay(500);
-  //  } else if (inChar == '5') {
-  //    mp3_play(5);
-  //    delay(500);
-  //  } else if (inChar == '6') {
-  //    mp3_play(6);
-  //    delay(500);
-  //  } else if (inChar == '*') {
-  //    mp3_stop();
-  //    delay(500);
-  //  }
 }
 

@@ -65,8 +65,6 @@ void mode1() {
       delay(1000);
       lcd.clear();
     } else {
-      updateNoodle();
-
       if (sum > 0) {
         sum = sum / 5;
       }
@@ -88,8 +86,7 @@ void mode1() {
         delay(500);
       }
 
-      //      sum = 0;
-      //      mode = 4;
+      updateNoodle();
     }
   }
 
@@ -138,9 +135,6 @@ void mode1() {
       }
 
       updateNoodle();
-
-      //      sum = 0;
-      //      mode = 4;
     }
   }
 }
@@ -168,65 +162,6 @@ void clearChoice() {
   dataNoodle = 0;
   mode = 1;
 }
-
-
-
-// check noodle in stock
-//void checkStock() {
-//  fstock1 = EEPROM.read(f_stock1);
-//  fstock2 = EEPROM.read(f_stock2);
-//  fstock3 = EEPROM.read(f_stock3);
-//  fstock4 = EEPROM.read(f_stock4);
-//  fstock5 = EEPROM.read(f_stock5);
-//  fstock6 = EEPROM.read(f_stock6);
-//  bstock1 = EEPROM.read(b_stock1);
-//  bstock2 = EEPROM.read(b_stock2);
-//  bstock3 = EEPROM.read(b_stock3);
-//  bstock4 = EEPROM.read(b_stock4);
-//  bstock5 = EEPROM.read(b_stock5);
-//  bstock6 = EEPROM.read(b_stock6);
-//
-//  Serial.print("checkStock ");
-//  Serial.println(fstock1);
-//  delay(2000);
-//
-//  // if noodle cup out of stock
-//  if (fstock1 == 0 && fstock2 == 0 && fstock3 == 0 && fstock4 == 0 && fstock5 == 0 && fstock6 == 0
-//      && bstock1 == 0 && bstock2 == 0 && bstock3 == 0 && bstock4 == 0 && bstock5 == 0 && bstock6 == 0) {
-//    noodleState = true;
-//    Serial.println("noodleState = true");
-//    clearChoice();
-//  }
-//
-//  // if your noodle out of stock
-//  if (dataNoodle == fstock1 && fstock1 == 0) {
-//    Serial.println("clearChoice");
-//    clearChoice();
-//  } else if (dataNoodle == fstock2 && fstock2 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == fstock3 && fstock3 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == fstock4 && fstock4 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == fstock5 && fstock5 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == fstock6 && fstock6 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock1 && bstock1 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock2 && bstock2 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock3 && bstock3 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock4 && bstock4 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock5 && bstock5 == 0) {
-//    clearChoice();
-//  } else if (dataNoodle == bstock6 && bstock6 == 0) {
-//    clearChoice();
-//  }
-//}
-
 
 
 

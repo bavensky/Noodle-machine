@@ -45,21 +45,3 @@ void mode5() {
     mode = 2;
   }
 }
-
-
-
-// warning water not flow
-//void waterFail() {
-//  lcd.backlight();
-//  lcd.setCursor(0, 0);
-//  lcd.print("     Warning !!!    ");
-//  lcd.setCursor(0, 1);
-//  lcd.print("   Out of Sevice    ");
-//  lcd.setCursor(0, 2);
-//  lcd.print("     No Water       ");
-//  lcd.setCursor(0, 3);
-//  lcd.print("                    ");
-//  delay(250);
-//  lcd.noBacklight();
-//  delay(250);
-//}

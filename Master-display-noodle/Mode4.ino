@@ -12,16 +12,22 @@ void mode4() {
   getTemp();
 
 
+  // heater controll
+  if (tempC <= 40) {
+    digitalWrite(heater, LOW); // heater  ON
+  } else {
+    digitalWrite(heater, HIGH); // heater OFF
+  }
+
 
   // sound loop
   unsigned long curGet = millis();
   if (curGet - preGet >= 10000) {
     preGet = curGet;
-    //    mp3_play(4);  // กรุณาหยิบบะหมี่
     if (countGet <= 4) {
-      mp3_play(4);  // กรุณาเติมน้ำร้อน
+      mp3_play(4);  // กรุณาหยิบบะหมี่
     } else if (countGet >= 5) {
-      mp3_play(5);
+      mp3_play(5); // กรุณาเติมน้ำร้อน
     }
     countGet = countGet + 1;
   }
@@ -67,19 +73,8 @@ void mode4() {
   //  }
 
 
-
-  if (tempC <= 40) {
-    digitalWrite(heater, LOW); // heater  ON
-  } else {
-    digitalWrite(heater, HIGH); // heater OFF
-  }
-
-
-
-  //  check water temperature
-
   //  if (analogRead(flow) > 500) {
-  //    countFlow = 1;
+  //    countFlow += 1;
   //  }
   //
   //  if (analogRead(flow) > 500 && countFlow == 1) {
@@ -109,7 +104,6 @@ void mode4() {
   //  } else {
   //    digitalWrite(heater, HIGH);  // heater OFF
   //  }
-
 
 
   // mode 4 display

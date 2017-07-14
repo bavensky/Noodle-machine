@@ -135,8 +135,9 @@ byte sum;
 byte count = 0;
 float cal_coin;
 
+
 // stock noodle
-byte stock = 12;  //  for caribation stock
+byte stock = 10;  //  for caribation stock
 byte fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
 byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
 
@@ -197,6 +198,7 @@ void coin() {
 }
 
 
+
 // get data form keypad
 void getKeypad() {
   inChar = keypad.getKey();
@@ -246,21 +248,12 @@ void eject() {
   }
 }
 
-// command sent i2c to slave
-// 'A' ' 1'
-//  A ด้านหน้าตำแหน่งที่ 1
-// 'B' ' 3'
-//  B ด้านหลังตำแหน่งที่ 3
 
 
 /*************** setup program ***************/
 void setup() {
   // Serial
   Serial.begin(9600);
-
-
-  // Frequency flow water
-  //  FreqMeasure.begin();
 
   //  mp3
   mp3.begin (9600);
@@ -279,7 +272,8 @@ void setup() {
   digitalWrite(heater, HIGH);
   digitalWrite(light, HIGH);
 
-  // ds18b20
+
+  // ds18b20 temp water sensor
   sensors.begin();
   sensors.getAddress(insideThermometer, 0);
   sensors.setResolution(insideThermometer, 9);
@@ -288,6 +282,8 @@ void setup() {
   // rtc 1307
   rtc.begin();  // i2c address 0x68
   //  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+
 
   //  read EEPROM stock Noodle
   fstock1 = EEPROM.read(f_stock1);
@@ -322,13 +318,16 @@ void setup() {
   lcd.print("RMUTL Senior Project");
   delay(2000);
   lcd.clear();
-}
+} // end set up loop
+
+
 
 
 /*************** loop program ***************/
 void loop() {
   Serial.println("main mode");
   digitalWrite(heater, HIGH); // set heater default
+
 
   DateTime now = rtc.now();   //  read time now
 
@@ -364,11 +363,11 @@ void loop() {
 
   // light mode
   if (now.hour() >= 0 && now.hour() <= 6) {
-    digitalWrite(light, LOW);
+    digitalWrite(light, LOW); // turn on the light 
   } else if (now.hour() >= 18 && now.hour() <= 23) {
-    digitalWrite(light, LOW);
+    digitalWrite(light, LOW); // turn on the light 
   } else {
-    digitalWrite(light, HIGH);
+    digitalWrite(light, HIGH); // turn off the light 
   }
 
 
@@ -381,6 +380,7 @@ void loop() {
     Serial.println(sum);
     mode = 1;
   }
+
 
   if (sum >= 5) {
     unsigned long curCoin = millis();
@@ -406,6 +406,7 @@ void loop() {
     eject();
   }
   if (customKey == 'B') {
+    // goto select noodle mode
     lcd.clear();
     mode = 1;
   }
