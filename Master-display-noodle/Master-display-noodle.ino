@@ -1,7 +1,6 @@
 /*
    Instant Noodle Vending Machine (Master Display)
    RMUTL Senior Project
-   Coder  : ArduinoSiam
    Date   : 08/04/2560
 
    ---pin Connecting---
@@ -56,7 +55,7 @@
 
 
 /*************** Include Library ***************/
-#include <Wire.h>
+#include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 #include "RTClib.h"
@@ -66,34 +65,34 @@
 #include <SoftwareServo.h>
 #include <DFPlayer_Mini_Mp3.h>
 #include <EEPROM.h>
-//#include <FreqMeasure.h>
+
 
 /*************** Initail variable ***************/
 // define pin
-#define PINSG6  2   //  coin vending 
-#define heater  A0
-#define flow    A2
-#define light   A3
-#define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor
+#define PINSG6  2   //  coin vending connection
+#define heater  A0  //  heater connection
+#define flow    A2  //  flow sensor connection
+#define light   A3  //  LED light connection
+#define ONE_WIRE_BUS 13 //  ds18b20 temperature sensor connection
 
-byte countFlow = 0;
+byte countFlow = 0;   //  ตัวแปรสำหรับเก็บค่าการวัดของ Flow sensor
 
 // init onewire comminication
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 DeviceAddress insideThermometer;
-float tempC = 0.0;
+float tempC = 0.0;    //  ตัวแปรสำหรับเก็บค่าการวัดอุณหภูมิ
 
 
 // init real time clock
-RTC_DS3231 rtc;
+RTC_DS3231 rtc; 
 char daysOfTheWeek[7][12] = {"   Sunday", "   Monday", "  Tuesday", "Wednesday", "Thursday ", "   Friday", " Saturday"};
 
 
 // init keypad 4x4
-#define password  "1111"
-const byte ROWS = 4;
-const byte COLS = 4;
+#define password  "1111"  //  รหัสผ่านสำหรับผู้ดูแลระบบ
+const byte ROWS = 4;      //  กำหนดแถวของ Keypad
+const byte COLS = 4;      //  กำหนดลำดับของ Keypad
 char keys[ROWS][COLS] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
@@ -110,18 +109,18 @@ LiquidCrystal_I2C lcd(0x38, 20, 4); //  LCD address 0x38
 
 
 //init mp3 module
-SoftwareSerial mp3(10, 11);  // RX, TX
-SoftwareServo myservo;
-#define pinServo A1
+SoftwareSerial mp3(10, 11);   // RX, TX
+SoftwareServo myservo;        // ประกาศใช้งานการจำลองเซอร์โว
+#define pinServo A1           // ขาใช้งานที่จำลองขึ้นใช้งานสำหรับเซอร์โวมอเตอร์
+  
 
-
-// global variable
+///////////* global variable *///////////
 // get keypad
-byte numKey, numKey1, numKey2, numKey3, numKey4;
-char inChar;
+byte numKey, numKey1, numKey2, numKey3, numKey4;  //  ตัวแปรสำหรับเก็บค่าการอ่าน Keypad
+char inChar;    // ตัวแปรสำหรับเก็บตัวอักษรที่อ่านจาก Keypad
 
-// loop status
-byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
+// ตัวแปรใช้งานทั่วไป
+byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;    
 boolean pressState = false;
 
 // Get noodle count
@@ -169,6 +168,9 @@ boolean noodleState = false;
 boolean tempState = false;
 boolean waterState = false;
 
+
+
+
 /*************** Sub function ***************/
 // read coin vending
 void coin() {
@@ -182,7 +184,6 @@ void coin() {
   if (cal_coin > 2) {
     count = count + 1;
   }
-  //  }
 
   if (cal_coin == 0) {
     if (count > 3 && count < 7) {
@@ -193,16 +194,14 @@ void coin() {
     }
     count = 0;
   }
-  //  Serial.print("count = ");
-  //  Serial.println(count);
 }
 
 
 
 // get data form keypad
 void getKeypad() {
-  inChar = keypad.getKey();
-  switch (inChar) {
+  inChar = keypad.getKey(); 
+  switch (inChar) {   //  แปลงตัวอักษรเป็นตัวเลข
     case '1': numKey = 1; pressState = true;  break;
     case '2': numKey = 2; pressState = true;  break;
     case '3': numKey = 3; pressState = true;  break;
@@ -226,14 +225,17 @@ void getKeypad() {
   }
 }
 
+
 // get data form 18b20
 void getTemp() {
-  sensors.requestTemperatures();
-  tempC = sensors.getTempC(insideThermometer);
+  sensors.requestTemperatures();  
+  tempC = sensors.getTempC(insideThermometer);  //  เก็บค่าอุณหภูมิไว้ในตัวแปร tempC
 }
+
 
 // eject coin
 void eject() {
+  //  คำสั่งสร้างสัญญาณควบคุมเซอร์โว
   for (int i = 0; i <= 2000; i++) {
     myservo.write(0);
     SoftwareServo::refresh();
@@ -325,20 +327,17 @@ void setup() {
 
 /*************** loop program ***************/
 void loop() {
-  Serial.println("main mode");
   digitalWrite(heater, HIGH); // set heater default
-
 
   DateTime now = rtc.now();   //  read time now
 
 
-
   // main display
-  lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);    //  แสดงผลบรรทัดแรก
   lcd.print("   Instant Noodles  ");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 1);    //  แสดงผลบรรทัดที่สอง
   lcd.print("    15Baht/1cup     ");
-  lcd.setCursor(0, 2);
+  lcd.setCursor(0, 2);    //  แสดงผลบรรทัดที่สาม
   if (sum == 0) {
     lcd.print("  Insert Coin 5/10  ");
   } else {
@@ -346,7 +345,7 @@ void loop() {
     lcd.print(sum);
     lcd.print(" Baht   ");
   }
-  lcd.setCursor(0, 3);
+  lcd.setCursor(0, 3);    //  แสดงผลบรรทัดที่สี่
   lcd.print(" ");
   lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
   lcd.print("  ");
@@ -375,13 +374,11 @@ void loop() {
   //  check coin if It's enough
   if (sum >= 15) {
     lcd.clear();
-    sum = sum - 15;
-    Serial.print("SUM = ");
-    Serial.println(sum);
+    sum = sum - 15;   //  แปลงค่าสำหรับคำนวณในการทอน
     mode = 1;
   }
 
-
+  //  หากมีการหยอดเหรียญ จะเปิดเสียงแจ้งเตือน
   if (sum >= 5) {
     unsigned long curCoin = millis();
     if (curCoin - preCoin >= 5000) {
@@ -428,26 +425,31 @@ void loop() {
   //////// All Mode ////////
   while (mode == 1) {
     // select noodle
+    // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
     mode1();
   }
 
   while (mode == 2) {
     // admin mode
+    // กระโดดไปโหมด 2 เข้าระบบแอดมิน
     mode2();
   }
 
   while (mode == 3) {
     // System monitor
+    // กระโดดไปโหมด 3 แสดงผลระบบสำหรับแอดมิน
     mode3();
   }
 
   while (mode == 4) {
     // get noodle
+    // กระโดดไปโหมด 4 รอรับบะหมี่ และน้ำร้อน
     mode4();
   }
 
   while (mode == 5) {
     // Warning mode
+    // กระโดดไปโหมด 5 แจ้งเตือน กรณีเครื่องมีปัญหา
     mode5();
   }
 }

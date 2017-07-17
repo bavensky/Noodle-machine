@@ -1,10 +1,5 @@
 //////// Mode 3 System monitor ///////
 void mode3() {
-  // print mode are in
-  Serial.println("System monitor mode");
-
-
-
   // clear Status for make sure is repair
   noodleState = false;
   tempState = false;
@@ -90,6 +85,8 @@ void mode3() {
     EEPROM.write(b_stock6, stock);
     delay(1000);
     stateAdmin = 0;
+
+    // กระโดดไปโหมด 0 หน้าหลัก
     mode = 0;
   }
 }

@@ -1,9 +1,5 @@
 //////// Mode 4 Get noodle ///////
 void mode4() {
-  // print mode are in
-  Serial.println("Get noodle mode");
-
-
   // get data from keypad
   getKeypad();
 
@@ -54,6 +50,8 @@ void mode4() {
     lcd.clear();
     countGet = 0;
     dataNoodle = 0;
+
+    // กระโดดไปโหมด 0 หน้าหลัก
     mode = 0;
   }
 

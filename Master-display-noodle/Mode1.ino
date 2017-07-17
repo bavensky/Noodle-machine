@@ -1,9 +1,5 @@
 //////// Mode 1 select noodle ///////
 void mode1() {
-  // print mode are in
-  Serial.println("select noodle mode");
-
-
   // interval sound speaker
   unsigned long curSelect = millis();
   if (curSelect - preSelect >= 5000) {
@@ -14,23 +10,26 @@ void mode1() {
 
 
   // mode 1 display
-  lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);      //  แสดงผลบรรทัดแรก
   lcd.print("Select Your Noodles ");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 1);      //  แสดงผลบรรทัดที่สอง
   lcd.print(" Number : ");
-  lcd.setCursor(0, 2);
+  lcd.setCursor(0, 2);      //  แสดงผลบรรทัดที่สาม
   lcd.print("                    ");
-  lcd.setCursor(0, 3);
+  lcd.setCursor(0, 3);      //  แสดงผลบรรทัดที่สี่
   lcd.print("* Clear    # Confirm");
 
 
   // get keypad for select noodle
   getKeypad();
-  if (pressState == true) {
+
+
+  //  เช็คตำแหน่งการแสดงผลหน้าจอ
+  if (pressState == true) { //  ตรวจสอบเมื่อมีการกด
     pressState = false;
-    lcd.setCursor(lcdCol, 1);
+    lcd.setCursor(lcdCol, 1); // กำหนดตำแหน่งหน้าจอแสดงผล
     lcd.print(numKey);
-    dataNoodle = numKey;
+    dataNoodle = numKey;      
     countPass += 1;
     lcdCol += 1;
   }
@@ -38,6 +37,7 @@ void mode1() {
 
   // exit choose noodle and refund 15 baht
   if (inChar == '*') {
+    // ดันเหรียญคืน 15 บาท
     eject();
     delay(500);
     eject();
@@ -52,7 +52,7 @@ void mode1() {
 
   //  choose noodle finish
   if (inChar == '#') {
-    //    checkStock();
+    //  ตรวจสอบการเลือก หากไม่มีการเลือก จะแสดงผลแจ้งเตือน
     if (dataNoodle == 0) {
       countPass = 0;
       numKey1 = 0;
@@ -60,15 +60,19 @@ void mode1() {
       dataNoodle = 0;
       lcdCol = 11;
 
+      //  แสดงการแจ้งเตือน
       lcd.setCursor(0, 2);
       lcd.print("   Invalid Number!  ");
       delay(1000);
       lcd.clear();
     } else {
+
+      //  คำนวณหาเงินทอน
       if (sum > 0) {
         sum = sum / 5;
       }
 
+      //  ทอนเงินตามจำนวน
       if (sum == 1) {
         eject();
         delay(500);
@@ -86,37 +90,46 @@ void mode1() {
         delay(500);
       }
 
+
+      //  เข้าฟังก์ชันอัพเดทข้อมูล และเลือกบะหมี่
       updateNoodle();
     }
   }
 
 
 
+  //  ตรวจสอบการกดเลือกบะหมี่ กรณีเลือกเลขหลักสิบ
   if (countPass == 1) numKey1 = numKey;
   if (countPass == 2) {
     numKey2 = numKey;
-
     numKey1 = numKey1 * 10;
     numKey2 = numKey1 + numKey2;
     dataNoodle = numKey2;
 
     //    checkStock();
     if (dataNoodle > 12) {
+      //  ตรวจสอบการเลือก หากไม่มีการเลือก จะแสดงผลแจ้งเตือน
       countPass = 0;
       numKey1 = 0;
       numKey2 = 0;
       dataNoodle = 0;
       lcdCol = 11;
+      // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
       mode = 1;
+
+      //  แสดงการแจ้งเตือน
       lcd.setCursor(0, 2);
       lcd.print("   Invalid Number!  ");
       delay(1000);
       lcd.clear();
     } else {
+      //  คำนวณหาเงินทอน
       if (sum > 0) {
         sum = sum / 5;
       }
 
+
+      //  ทอนเงินตามจำนวน
       if (sum == 1) {
         eject();
         delay(500);
@@ -134,6 +147,7 @@ void mode1() {
         delay(500);
       }
 
+      //  เข้าฟังก์ชันอัพเดทข้อมูล และเลือกบะหมี่
       updateNoodle();
     }
   }
@@ -143,11 +157,13 @@ void mode1() {
 
 // clear data
 void clearChoice() {
+  //  เคลียร์ข้อมูล
   countPass = 0;
   numKey1 = 0;
   numKey2 = 0;
   lcdCol = 11;
 
+  //  แสดงผลข้อความ บะหมี่กึ่งสำเร็จรูปหมด
   lcd.setCursor(0, 0);
   lcd.print("Select Your Noodles ");
   lcd.setCursor(0, 1);
@@ -156,10 +172,11 @@ void clearChoice() {
   lcd.print("  Out of Stock !!!  ");
   lcd.setCursor(0, 3);
   lcd.print("* Clear    # Confirm");
-
   delay(1000);
+  
   lcd.clear();
   dataNoodle = 0;
+  // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
   mode = 1;
 }
 
@@ -192,12 +209,15 @@ void updateNoodle() {
   } else if (dataNoodle == 12 && bstock6 == 0) {
     clearChoice();
   } else {
+
     // sent data to slave mcu
     Wire.beginTransmission(8);
     Wire.write(dataNoodle);
     Wire.endTransmission();
     delay(1000);
 
+
+    //  อัพเดทข้อมูลใน EEPROM
     updateEEPROM();
 
     // clear data
@@ -205,6 +225,7 @@ void updateNoodle() {
     lcdCol = 11;
     dataNoodle = 0;
     sum = 0;
+    // กระโดดไปโหมด 4 รอรับบะหมี่ และน้ำร้อน
     mode = 4;
   }
 
@@ -212,7 +233,7 @@ void updateNoodle() {
 
 
 
-
+//  อัพเดทข้อมูลใน EEPROM
 void updateEEPROM() {
   fstock1 = EEPROM.read(f_stock1);
   fstock2 = EEPROM.read(f_stock2);

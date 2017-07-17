@@ -1,12 +1,9 @@
 //////// Mode 5 Warning mode ///////
 void mode5() {
-  // print mode are in
-  Serial.println("warning mode");
-
-
-
   // backlight loop
   unsigned long curGet = millis();
+
+  //  ไฟหน้าจอกระพริบทุก ๆ 1 วินาที
   if (curGet - preGet >= 1000) {
     lcd.noBacklight();
     preGet = curGet;
@@ -42,6 +39,8 @@ void mode5() {
     tempState = false;
     waterState = false;
     lcd.clear();
+
+    // กระโดดไปโหมด 2 เข้าระบบแอดมิน
     mode = 2;
   }
 }
