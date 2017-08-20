@@ -19,11 +19,11 @@ void mode5() {
   lcd.setCursor(0, 1);
   lcd.print("   Out of Sevice    ");
   lcd.setCursor(0, 2);
-  if(noodleState == true) {
+  if (noodleState == true) {
     lcd.print(" Noodle Outof Stock ");
-  } else if(tempState == true) {
+  } else if (tempState == true) {
     lcd.print(" Heater Not Working ");
-  }  else if(waterState == true) {
+  }  else if (waterState == true) {
     lcd.print("      No Water      ");
   }
   lcd.setCursor(0, 3);
@@ -39,6 +39,9 @@ void mode5() {
     tempState = false;
     waterState = false;
     lcd.clear();
+    lcdCol = 11;
+    countGet = 0;
+    dataNoodle = 0;
 
     // กระโดดไปโหมด 2 เข้าระบบแอดมิน
     mode = 2;

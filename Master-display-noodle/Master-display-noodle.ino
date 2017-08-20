@@ -55,7 +55,7 @@
 
 
 /*************** Include Library ***************/
-#include <Wire.h> 
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 #include "RTClib.h"
@@ -85,7 +85,7 @@ float tempC = 0.0;    //  ตัวแปรสำหรับเก็บค่
 
 
 // init real time clock
-RTC_DS3231 rtc; 
+RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = {"   Sunday", "   Monday", "  Tuesday", "Wednesday", "Thursday ", "   Friday", " Saturday"};
 
 
@@ -112,7 +112,7 @@ LiquidCrystal_I2C lcd(0x38, 20, 4); //  LCD address 0x38
 SoftwareSerial mp3(10, 11);   // RX, TX
 SoftwareServo myservo;        // ประกาศใช้งานการจำลองเซอร์โว
 #define pinServo A1           // ขาใช้งานที่จำลองขึ้นใช้งานสำหรับเซอร์โวมอเตอร์
-  
+
 
 ///////////* global variable *///////////
 // get keypad
@@ -120,7 +120,7 @@ byte numKey, numKey1, numKey2, numKey3, numKey4;  //  ตัวแปรสำ�
 char inChar;    // ตัวแปรสำหรับเก็บตัวอักษรที่อ่านจาก Keypad
 
 // ตัวแปรใช้งานทั่วไป
-byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;    
+byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
 boolean pressState = false;
 
 // Get noodle count
@@ -170,7 +170,6 @@ boolean waterState = false;
 
 
 
-
 /*************** Sub function ***************/
 // read coin vending
 void coin() {
@@ -200,7 +199,7 @@ void coin() {
 
 // get data form keypad
 void getKeypad() {
-  inChar = keypad.getKey(); 
+  inChar = keypad.getKey();
   switch (inChar) {   //  แปลงตัวอักษรเป็นตัวเลข
     case '1': numKey = 1; pressState = true;  break;
     case '2': numKey = 2; pressState = true;  break;
@@ -228,7 +227,7 @@ void getKeypad() {
 
 // get data form 18b20
 void getTemp() {
-  sensors.requestTemperatures();  
+  sensors.requestTemperatures();
   tempC = sensors.getTempC(insideThermometer);  //  เก็บค่าอุณหภูมิไว้ในตัวแปร tempC
 }
 
@@ -328,45 +327,76 @@ void setup() {
 /*************** loop program ***************/
 void loop() {
   digitalWrite(heater, HIGH); // set heater default
-
   DateTime now = rtc.now();   //  read time now
 
 
-  // main display
-  lcd.setCursor(0, 0);    //  แสดงผลบรรทัดแรก
-  lcd.print("   Instant Noodles  ");
-  lcd.setCursor(0, 1);    //  แสดงผลบรรทัดที่สอง
-  lcd.print("    15Baht/1cup     ");
-  lcd.setCursor(0, 2);    //  แสดงผลบรรทัดที่สาม
-  if (sum == 0) {
-    lcd.print("  Insert Coin 5/10  ");
-  } else {
-    lcd.print(" Balance :  ");
-    lcd.print(sum);
-    lcd.print(" Baht   ");
+  //////// All Mode ////////
+  if (mode == 0) {
+    // main display
+    lcd.setCursor(0, 0);    //  แสดงผลบรรทัดแรก
+    lcd.print("   Instant Noodles  ");
+    lcd.setCursor(0, 1);    //  แสดงผลบรรทัดที่สอง
+    lcd.print("    15Baht/1cup     ");
+    lcd.setCursor(0, 2);    //  แสดงผลบรรทัดที่สาม
+    if (sum == 0) {
+      lcd.print("  Insert Coin 5/10  ");
+    } else {
+      lcd.print(" Balance :  ");
+      lcd.print(sum);
+      lcd.print(" Baht   ");
+    }
+    lcd.setCursor(0, 3);    //  แสดงผลบรรทัดที่สี่
+    lcd.print(" ");
+    lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    lcd.print("  ");
+    lcd.setCursor(12, 3);
+    if (now.hour() <= 9) lcd.print("0");
+    lcd.print(now.hour());
+    lcd.print(":");
+    if (now.minute() <= 9) lcd.print("0");
+    lcd.print(now.minute());
+    lcd.print("   ");
   }
-  lcd.setCursor(0, 3);    //  แสดงผลบรรทัดที่สี่
-  lcd.print(" ");
-  lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  lcd.print("  ");
-  lcd.setCursor(12, 3);
-  if (now.hour() <= 9) lcd.print("0");
-  lcd.print(now.hour());
-  lcd.print(":");
-  if (now.minute() <= 9) lcd.print("0");
-  lcd.print(now.minute());
-  lcd.print("   ");
+  
+  while (mode == 1) {
+    // select noodle
+    // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
+    mode1();
+  }
 
+  while (mode == 2) {
+    // admin mode
+    // กระโดดไปโหมด 2 เข้าระบบแอดมิน
+    mode2();
+  }
+
+  while (mode == 3) {
+    // System monitor
+    // กระโดดไปโหมด 3 แสดงผลระบบสำหรับแอดมิน
+    mode3();
+  }
+
+  while (mode == 4) {
+    // get noodle
+    // กระโดดไปโหมด 4 รอรับบะหมี่ และน้ำร้อน
+    mode4();
+  }
+
+  while (mode == 5) {
+    // Warning mode
+    // กระโดดไปโหมด 5 แจ้งเตือน กรณีเครื่องมีปัญหา
+    mode5();
+  }
 
 
 
   // light mode
   if (now.hour() >= 0 && now.hour() <= 6) {
-    digitalWrite(light, LOW); // turn on the light 
+    digitalWrite(light, LOW); // turn on the light
   } else if (now.hour() >= 18 && now.hour() <= 23) {
-    digitalWrite(light, LOW); // turn on the light 
+    digitalWrite(light, LOW); // turn on the light
   } else {
-    digitalWrite(light, HIGH); // turn off the light 
+    digitalWrite(light, HIGH); // turn off the light
   }
 
 
@@ -414,42 +444,8 @@ void loop() {
   if (customKey == 'D') {
     // goto admin mode
     lcd.clear();
+    preGet = millis();
     mode = 2;
   }
 
-
-
-
-
-
-  //////// All Mode ////////
-  while (mode == 1) {
-    // select noodle
-    // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
-    mode1();
-  }
-
-  while (mode == 2) {
-    // admin mode
-    // กระโดดไปโหมด 2 เข้าระบบแอดมิน
-    mode2();
-  }
-
-  while (mode == 3) {
-    // System monitor
-    // กระโดดไปโหมด 3 แสดงผลระบบสำหรับแอดมิน
-    mode3();
-  }
-
-  while (mode == 4) {
-    // get noodle
-    // กระโดดไปโหมด 4 รอรับบะหมี่ และน้ำร้อน
-    mode4();
-  }
-
-  while (mode == 5) {
-    // Warning mode
-    // กระโดดไปโหมด 5 แจ้งเตือน กรณีเครื่องมีปัญหา
-    mode5();
-  }
 }

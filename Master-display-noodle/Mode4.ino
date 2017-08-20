@@ -8,14 +8,6 @@ void mode4() {
   getTemp();
 
 
-  // heater controll
-  if (tempC <= 40) {
-    digitalWrite(heater, LOW); // heater  ON
-  } else {
-    digitalWrite(heater, HIGH); // heater OFF
-  }
-
-
   // sound loop
   unsigned long curGet = millis();
   if (curGet - preGet >= 10000) {
@@ -28,16 +20,36 @@ void mode4() {
     countGet = countGet + 1;
   }
 
+  if (countGet <= 1) {
+    digitalWrite(heater, LOW);
+  } else if (tempC <= 40) {
+    digitalWrite(heater, LOW); // heater  ON
+  } else {
+    digitalWrite(heater, HIGH); // heater OFF
+  }
+
+  Serial.println(analogRead(flow));
+  
+  if (analogRead(flow) > 900) {
+    countFlow += 1;
+  }
+
+  if (analogRead(flow) > 900 && countFlow == 1) {
+    waterState = false;
+  } else if(countFlow == 0) {
+    waterState = true;
+  }
+
 
   // exit mode
   if (countGet > 7) {
 
-    // check water temperature
-    //    if (tempC < 50) {
-    //      tempState = true;
-    //    } else {
-    //      tempState = false;
-    //    }
+    //    check water temperature
+    if (tempC < 40) {
+      tempState = true;
+    } else {
+      tempState = false;
+    }
 
 
     // if noodle cup out of stock
@@ -50,58 +62,12 @@ void mode4() {
     lcd.clear();
     countGet = 0;
     dataNoodle = 0;
+    countFlow = 0;
 
     // กระโดดไปโหมด 0 หน้าหลัก
     mode = 0;
   }
 
-  //     heater loop
-  //  if (curGet - preHeat >= 15000) {
-  //    countHeater += 1;
-  //    preHeat = curGet;
-  //  }
-  //
-  //  Serial.print("countHeater = ");
-  //  Serial.println(countHeater);
-  //
-  //  if (countHeater == 1 || countHeater == 3 || countHeater == 5) {
-  //    digitalWrite(heater, LOW);
-  //  } else {
-  //    digitalWrite(heater, HIGH);
-  //  }
-
-
-  //  if (analogRead(flow) > 500) {
-  //    countFlow += 1;
-  //  }
-  //
-  //  if (analogRead(flow) > 500 && countFlow == 1) {
-  //    waterState = false;
-  //    if (analogRead(flow) < 500) {
-  //      countFlow = 0;
-  //    }
-  //  } else if (analogRead(flow) < 500 && countFlow == 0) {
-  //    waterState = true;
-  //  }
-
-
-  //   worming water detecter
-  //  if (FreqMeasure.available()) {
-  //  if (tempC >= 50) {
-  //    digitalWrite(heater, HIGH); // heater OFF
-  //  } else {
-  //    countFlow += 1;
-  //    Serial.print("FreqMeasure : ");
-  //    Serial.println(countFlow);
-  //    digitalWrite(heater, LOW); // heater ON
-  //    if (countFlow >= 100) {
-  //      digitalWrite(heater, HIGH);
-  //      countFlow = 0;
-  //    }
-  //  }
-  //  } else {
-  //    digitalWrite(heater, HIGH);  // heater OFF
-  //  }
 
 
   // mode 4 display

@@ -25,6 +25,18 @@ void mode2() {
   }
 
 
+  unsigned long curGet = millis();
+
+  //  ออกจากโหมดเมื่อครบ 1 นาที
+  if (curGet - preGet >= 10000) {
+    lcd.clear();
+    lcdCol = 11;
+    countPass = 0;
+    preGet = curGet;
+    mode = 0;
+  }
+
+
 
   //  ตรวจสอบการกดรหัส กรณีเลือกเลขหลักสิบ
   if (countPass == 1) numKey1 = numKey;
@@ -70,7 +82,7 @@ void mode2() {
       lcd.clear();
       lcdCol = 11;
       countPass = 0;
-      
+
       // กระโดดไปโหมด 2 เข้าระบบแอดมิน
       mode = 2;
     }
