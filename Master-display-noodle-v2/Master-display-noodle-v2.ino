@@ -1,0 +1,464 @@
+/*
+   Instant Noodle Vending Machine (Master Display)
+   RMUTL Senior Project
+   Date   : 08/04/2560
+
+   ---pin Connecting---
+    I2C slave  :
+      GND     GND
+      SDA     A4
+      SCL     A5
+
+    LCD i2c :
+      GND     GND
+      VCC     5V
+      SDA     A4
+      SCL     A5
+
+    RTC i2c :
+      GND     GND
+      VCC     5V
+      SDA     A4
+      SCL     A5
+
+    Keypad 4x4 :
+      from left to right
+      1-4 Row
+      5-8 Column
+
+    MP3  :
+      TX      10 RX Software Serial
+      RX      11 TX Software Serial
+
+    Coin vending:
+      Signal  2
+
+    Heater  :
+      Trig    41
+
+    Coin feeder Servo :
+      Signal  5
+
+     Flow sensor :
+      Signal  A0
+
+    Light  :
+      Trig    43
+
+    Switch water  :
+      btn    47
+
+    mp3 list
+      1) welcome
+      2) insert coin
+      3) choose noodle cup
+      4) pick your noodle
+      5) hot water
+*/
+
+
+/*************** Include Library ***************/
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+#include "RTClib.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include <Servo.h>
+#include <SoftwareSerial.h>
+#include <DFPlayer_Mini_Mp3.h>
+#include <EEPROM.h>
+
+
+/*************** Initail variable ***************/
+// define pin
+#define PINSG6    2   //  coin vending connection
+#define light     41  //  LED light connection
+#define heater    43   //  heater connection
+#define SWITCH    45  //  Switch Button Solinoid
+#define SOLENOID  47  //  Switch Button Solinoid
+#define flow      A0  //  flow sensor connection
+
+#define ONE_WIRE_BUS 8 //  ds18b20 temperature sensor connection
+
+
+byte btnState = 0;
+byte countFlow = 0;   //  ตัวแปรสำหรับเก็บค่าการวัดของ Flow sensor
+
+
+// init onewire comminication
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+DeviceAddress insideThermometer;
+float tempC = 0.0;    //  ตัวแปรสำหรับเก็บค่าการวัดอุณหภูมิ
+
+
+// init real time clock
+RTC_DS3231 rtc;
+char daysOfTheWeek[7][12] = {"   Sunday", "   Monday", "  Tuesday", "Wednesday", "Thursday ", "   Friday", " Saturday"};
+
+
+// init keypad 4x4
+#define password  "1111"  //  รหัสผ่านสำหรับผู้ดูแลระบบ
+const byte ROWS = 4;      //  กำหนดแถวของ Keypad
+const byte COLS = 4;      //  กำหนดลำดับของ Keypad
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+byte rowPins[ROWS] = {23, 25, 27, 29};
+byte colPins[COLS] = {31, 33, 35, 37};
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+
+// init lcd display 20 x 4
+LiquidCrystal_I2C lcd(0x38, 20, 4); //  LCD address 0x38
+
+
+//init mp3 module
+SoftwareSerial mp3(10, 11);   // RX, TX
+
+
+// init servo
+#define pinServo 3           // ขาใช้งานที่จำลองขึ้นใช้งานสำหรับเซอร์โวมอเตอร์
+Servo myservo;
+
+
+///////////* global variable *///////////
+// get keypad
+byte numKey, numKey1, numKey2, numKey3, numKey4;  //  ตัวแปรสำหรับเก็บค่าการอ่าน Keypad
+char inChar;    // ตัวแปรสำหรับเก็บตัวอักษรที่อ่านจาก Keypad
+
+// ตัวแปรใช้งานทั่วไป
+byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
+boolean pressState = false;
+
+// Get noodle count
+byte countHeater;
+byte countGet;
+byte dataNoodle;
+
+
+// detect coin vending
+byte sum;
+byte count = 0;
+float cal_coin;
+
+
+// stock noodle
+byte stock = 10;  //  for caribation stock
+byte fstock1, fstock2, fstock3, fstock4, fstock5, fstock6;
+byte bstock1, bstock2, bstock3, bstock4, bstock5, bstock6;
+
+
+// EEPROM address for stock noodle
+byte f_stock1 = 1;
+byte f_stock2 = 2;
+byte f_stock3 = 3;
+byte f_stock4 = 4;
+byte f_stock5 = 5;
+byte f_stock6 = 6;
+byte b_stock1 = 7;
+byte b_stock2 = 8;
+byte b_stock3 = 9;
+byte b_stock4 = 10;
+byte b_stock5 = 11;
+byte b_stock6 = 12;
+
+
+// interval variable
+unsigned long preCoin = 0;
+unsigned long preSelect = 0;
+unsigned long preGet = 0;
+unsigned long preHeat = 0;
+
+
+// status variable
+boolean noodleState = false;
+boolean tempState = false;
+boolean waterState = false;
+
+
+
+/*************** Sub function ***************/
+// read coin vending
+void coin() {
+  unsigned long duration;
+  //  for (int i = 0; i <= 10; i++)  {
+  duration = pulseIn(PINSG6, HIGH, 1000000);
+  cal_coin = duration / 1000.00;
+  Serial.print("DelT=");
+  Serial.print(cal_coin);
+  Serial.println(" ms");
+  if (cal_coin > 2) {
+    count = count + 1;
+  }
+
+  if (cal_coin == 0) {
+    if (count > 3 && count < 7) {
+      sum = sum + 5;
+    }
+    if (count > 7) {
+      sum = sum + 10;
+    }
+    count = 0;
+  }
+}
+
+
+
+// get data form keypad
+void getKeypad() {
+  inChar = keypad.getKey();
+  switch (inChar) {   //  แปลงตัวอักษรเป็นตัวเลข
+    case '1': numKey = 1; pressState = true;  break;
+    case '2': numKey = 2; pressState = true;  break;
+    case '3': numKey = 3; pressState = true;  break;
+    case '4': numKey = 4; pressState = true;  break;
+    case '5': numKey = 5; pressState = true;  break;
+    case '6': numKey = 6; pressState = true;  break;
+    case '7': numKey = 7; pressState = true;  break;
+    case '8': numKey = 8; pressState = true;  break;
+    case '9': numKey = 9; pressState = true;  break;
+    case '0': numKey = 0; pressState = true;  break;
+    case '#':
+      lcdCol = 11;
+      lcd.clear();
+      countPass = 0;
+      mode = 0;
+      pressState = false;
+      countPass = 0;
+      numKey1 = 0;
+      numKey2 = 0;
+      break;
+  }
+}
+
+
+// get data form 18b20
+void getTemp() {
+  sensors.requestTemperatures();
+  tempC = sensors.getTempC(insideThermometer);  //  เก็บค่าอุณหภูมิไว้ในตัวแปร tempC
+}
+
+
+// eject coin
+void eject() {
+  //  คำสั่งสร้างสัญญาณควบคุมเซอร์โว
+  myservo.attach(pinServo);
+  myservo.write(0);
+  delay(1000);
+  myservo.write(180);
+  delay(1000);
+  myservo.write(0);
+  delay(1000);
+  myservo.detach();
+}
+
+
+
+/*************** setup program ***************/
+void setup() {
+  // Serial
+  Serial.begin(9600);
+
+  //  mp3
+  mp3.begin (9600);
+  mp3_set_serial (mp3);
+  mp3_set_volume (25);
+
+  //  i2c
+  Wire.begin();
+
+  // servo
+  myservo.attach(pinServo);
+
+  // output control
+  pinMode(SWITCH, INPUT_PULLUP);
+  pinMode(heater, OUTPUT);
+  pinMode(light, OUTPUT);
+  pinMode(SOLENOID, OUTPUT);
+  digitalWrite(heater, HIGH);
+  digitalWrite(light, HIGH);
+  digitalWrite(SOLENOID, HIGH);
+
+
+  // ds18b20 temp water sensor
+  sensors.begin();
+  sensors.getAddress(insideThermometer, 0);
+  sensors.setResolution(insideThermometer, 9);
+
+
+  // rtc 1307
+  rtc.begin();  // i2c address 0x68
+  //  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+
+
+  //  read EEPROM stock Noodle
+  fstock1 = EEPROM.read(f_stock1);
+  fstock2 = EEPROM.read(f_stock2);
+  fstock3 = EEPROM.read(f_stock3);
+  fstock4 = EEPROM.read(f_stock4);
+  fstock5 = EEPROM.read(f_stock5);
+  fstock6 = EEPROM.read(f_stock6);
+  bstock1 = EEPROM.read(b_stock1);
+  bstock2 = EEPROM.read(b_stock2);
+  bstock3 = EEPROM.read(b_stock3);
+  bstock4 = EEPROM.read(b_stock4);
+  bstock5 = EEPROM.read(b_stock5);
+  bstock6 = EEPROM.read(b_stock6);
+  delay(500);
+
+
+  // interrupt coin vending
+  pinMode(PINSG6, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PINSG6), coin, CHANGE);
+
+  // first display
+  lcd.begin();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("   Instant Noodles  ");
+  lcd.setCursor(0, 1);
+  lcd.print("   Vending Machine  ");
+  lcd.setCursor(0, 2);
+  lcd.print("                    ");
+  lcd.setCursor(0, 3);
+  lcd.print("RMUTL Senior Project");
+  delay(2000);
+  lcd.clear();
+} // end set up loop
+
+
+
+
+/*************** loop program ***************/
+void loop() {
+  digitalWrite(heater, HIGH); // set heater default
+  DateTime now = rtc.now();   //  read time now
+
+
+  //////// All Mode ////////
+  if (mode == 0) {
+    // main display
+    lcd.setCursor(0, 0);    //  แสดงผลบรรทัดแรก
+    lcd.print("   Instant Noodles  ");
+    lcd.setCursor(0, 1);    //  แสดงผลบรรทัดที่สอง
+    lcd.print("    15Baht/1cup     ");
+    lcd.setCursor(0, 2);    //  แสดงผลบรรทัดที่สาม
+    if (sum == 0) {
+      lcd.print("  Insert Coin 5/10  ");
+    } else {
+      lcd.print(" Balance :  ");
+      lcd.print(sum);
+      lcd.print(" Baht   ");
+    }
+    lcd.setCursor(0, 3);    //  แสดงผลบรรทัดที่สี่
+    lcd.print(" ");
+    lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    lcd.print("  ");
+    lcd.setCursor(12, 3);
+    if (now.hour() <= 9) lcd.print("0");
+    lcd.print(now.hour());
+    lcd.print(":");
+    if (now.minute() <= 9) lcd.print("0");
+    lcd.print(now.minute());
+    lcd.print("   ");
+  }
+
+  while (mode == 1) {
+    // select noodle
+    // กระโดดไปโหมด 1 เลือกบะหมี่กึ่งสำเร็จรูป
+    mode1();
+  }
+
+  while (mode == 2) {
+    // admin mode
+    // กระโดดไปโหมด 2 เข้าระบบแอดมิน
+    mode2();
+  }
+
+  while (mode == 3) {
+    // System monitor
+    // กระโดดไปโหมด 3 แสดงผลระบบสำหรับแอดมิน
+    mode3();
+  }
+
+  while (mode == 4) {
+    // get noodle
+    // กระโดดไปโหมด 4 รอรับบะหมี่ และน้ำร้อน
+    mode4();
+  }
+
+  while (mode == 5) {
+    // Warning mode
+    // กระโดดไปโหมด 5 แจ้งเตือน กรณีเครื่องมีปัญหา
+    mode5();
+  }
+
+
+
+  // light mode
+  if (now.hour() >= 0 && now.hour() <= 6) {
+    digitalWrite(light, LOW); // turn on the light
+  } else if (now.hour() >= 18 && now.hour() <= 23) {
+    digitalWrite(light, LOW); // turn on the light
+  } else {
+    digitalWrite(light, HIGH); // turn off the light
+  }
+
+
+
+  //  check coin if It's enough
+  if (sum >= 15) {
+    lcd.clear();
+    sum = sum - 15;   //  แปลงค่าสำหรับคำนวณในการทอน
+    mode = 1;
+  }
+
+
+  //  หากมีการหยอดเหรียญ จะเปิดเสียงแจ้งเตือน
+  if (sum >= 5) {
+    unsigned long curCoin = millis();
+    if (curCoin - preCoin >= 5000) {
+      preCoin = curCoin;
+      mp3_play(2);  // กรุณาหยอดเหรียญ
+    }
+  }
+
+
+
+
+  //  warning detect
+  if (noodleState == true || tempState == true || waterState == true) {
+    mode = 5;
+  }
+
+
+
+  // debug mode
+  char customKey = keypad.getKey();
+  if (customKey == 'A') {
+    eject();
+  }
+  if (customKey == 'B') {
+    // goto select noodle mode
+    lcd.clear();
+    mode = 1;
+  }
+  if (customKey == 'C') {
+    // goto pick up noodle mode
+    lcd.clear();
+    mode = 4;
+  }
+  if (customKey == 'D') {
+    // goto admin mode
+    lcd.clear();
+    preGet = millis();
+    mode = 2;
+  }
+
+}
