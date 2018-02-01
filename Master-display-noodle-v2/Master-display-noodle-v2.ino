@@ -1,7 +1,7 @@
 /*
    Instant Noodle Vending Machine (Master Display)
    RMUTL Senior Project
-   Date   : 08/04/2560
+   Date   : 31/01/2561
 
    ---pin Connecting---
     I2C slave  :
@@ -179,7 +179,7 @@ unsigned long preHeat = 0;
 boolean noodleState = false;
 boolean tempState = false;
 boolean waterState = false;
-
+boolean hotWaterState = false;
 
 
 /*************** Sub function ***************/
@@ -274,6 +274,7 @@ void setup() {
 
   // servo
   myservo.attach(pinServo);
+  myservo.write(0);
 
   // output control
   pinMode(SWITCH, INPUT_PULLUP);
@@ -379,6 +380,7 @@ void loop() {
     // admin mode
     // กระโดดไปโหมด 2 เข้าระบบแอดมิน
     mode2();
+
   }
 
   while (mode == 3) {
@@ -446,13 +448,15 @@ void loop() {
   }
   if (customKey == 'B') {
     // goto select noodle mode
-    lcd.clear();
-    mode = 1;
+    //    lcd.clear();
+    //    mode = 1;
+    digitalWrite(SOLENOID, LOW);
   }
   if (customKey == 'C') {
     // goto pick up noodle mode
-    lcd.clear();
-    mode = 4;
+    //    lcd.clear();
+    //    mode = 4;
+    digitalWrite(SOLENOID, HIGH);
   }
   if (customKey == 'D') {
     // goto admin mode

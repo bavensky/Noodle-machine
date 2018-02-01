@@ -8,18 +8,18 @@ void mode4() {
   getTemp();
 
 
-  // check switch button for turn on solenoid
-  btnState = digitalRead(SWITCH);
-  if (btnState == 0) {
-    delay(100);
-    digitalWrite(SOLENOID, LOW);
-    Serial.println("Turn on solinoid");
-  } else {
-    digitalWrite(SOLENOID, HIGH);
-    Serial.println("Turn on solinoid");
-  }
 
-  
+  // check switch button for turn on solenoid
+  //  if (digitalRead(SWITCH) == 0) {
+  //    delay(100);
+  //    Serial.println("press switch");
+  //    digitalWrite(heater, LOW); // heater  ON
+  //    hotWaterState = true;
+  //    delay(2000);
+  //  } else {
+  //    hotWaterState = false;
+  //  }
+
   // sound loop
   unsigned long curGet = millis();
   if (curGet - preGet >= 10000) {
@@ -32,29 +32,74 @@ void mode4() {
     countGet = countGet + 1;
   }
 
-  if (countGet <= 1) {
-    digitalWrite(heater, LOW);
-  } else if (tempC <= 40) {
-    digitalWrite(heater, LOW); // heater  ON
+  // set heater low
+
+  Serial.print("Btton = ");
+  Serial.println(digitalRead(SWITCH));
+  digitalWrite(heater, HIGH);     // solenoid OFF
+  digitalWrite(SOLENOID, HIGH);   // heater  OFF
+
+
+  while (digitalRead(SWITCH) == 0) {
+    delay(100);
+    Serial.print("Btton = ");
+    Serial.println(digitalRead(SWITCH));
+    digitalWrite(SOLENOID, LOW);  // solenoid ON
+    digitalWrite(heater, LOW);    // heater  ON
+  }
+
+
+
+  if (countGet <= 3) {
+    digitalWrite(SOLENOID, LOW);  // solenoid ON
+    Serial.print("Count : ");
+    Serial.print(countGet);
+    Serial.print("  water : ");
+    Serial.println(analogRead(flow));
+    if (analogRead(flow) > 900) {
+      countFlow += 1;
+    }
   } else {
-    digitalWrite(heater, HIGH); // heater OFF
+    if (countFlow >= 1) {
+      waterState = false;
+      Serial.println("water OK");
+      delay(3000);
+    } else if (countFlow == 0) {
+      waterState = true;
+      Serial.println("water false");
+      delay(3000);
+      lcd.clear();
+      countGet = 0;
+      dataNoodle = 0;
+      countFlow = 0;
+
+      // exit mode and go to water error
+      mode = 0;
+    }
   }
 
 
-  Serial.println(analogRead(flow));
-  if (analogRead(flow) > 900) {
-    countFlow += 1;
-  }
+  //  } else if (tempC <= 40) {
+  //    digitalWrite(heater, LOW); // heater  ON
+  //  } else {
+  //    digitalWrite(heater, HIGH); // heater OFF
+  //  }
 
-  if (analogRead(flow) > 900 && countFlow == 1) {
-    waterState = false;
-  } else if (countFlow == 0) {
-    waterState = true;
-  }
+
+  //  Serial.println(analogRead(flow));
+  //  if (analogRead(flow) > 900) {
+  //    countFlow += 1;
+  //  }
+
+  //  if (analogRead(flow) > 900 && countFlow == 1) {
+  //    waterState = false;
+  //  } else if (countFlow == 0) {
+  //    waterState = true;
+  //  }
 
 
   // exit mode
-  if (countGet > 7) {
+  if (countGet > 10) {
 
     //    check water temperature
     if (tempC < 40) {
