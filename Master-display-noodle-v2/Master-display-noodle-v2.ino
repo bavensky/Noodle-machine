@@ -198,7 +198,7 @@ void coin() {
   }
 
   if (cal_coin == 0) {
-    if (count > 0 && count <= 3) {    // เช็คเหรียญบาท
+    if (count >= 1 && count <= 3) {    // เช็คเหรียญบาท
       sum = sum + 1;
     }
     if (count > 3 && count <= 7) {    // เช็คเหรียญห้า
