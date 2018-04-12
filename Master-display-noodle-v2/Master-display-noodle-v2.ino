@@ -145,7 +145,7 @@ byte dataNoodle;
 byte sum;
 byte count = 0;
 float cal_coin;
-
+byte sumChange = 200;
 
 // stock noodle
 byte stock = 10;  //  for caribation stock
@@ -180,6 +180,7 @@ boolean noodleState = false;
 boolean tempState = false;
 boolean waterState = false;
 boolean hotWaterState = false;
+boolean changeCoin = false;
 
 
 /*************** Sub function ***************/
@@ -197,10 +198,13 @@ void coin() {
   }
 
   if (cal_coin == 0) {
-    if (count > 3 && count < 7) {
+    if (count > 0 && count <= 3) {    // เช็คเหรียญบาท
+      sum = sum + 1;
+    }
+    if (count > 3 && count <= 7) {    // เช็คเหรียญห้า
       sum = sum + 5;
     }
-    if (count > 7) {
+    if (count > 7) {                  // เช็คเหรียญสิบ
       sum = sum + 10;
     }
     count = 0;
@@ -412,7 +416,10 @@ void loop() {
     digitalWrite(light, HIGH); // turn off the light
   }
 
-
+  // check change coin
+  if(sumChange <= 0) {
+    changeCoin = true;
+  }
 
   //  check coin if It's enough
   if (sum >= 15) {
@@ -435,7 +442,7 @@ void loop() {
 
 
   //  warning detect
-  if (noodleState == true || tempState == true || waterState == true) {
+  if (noodleState == true || tempState == true || waterState == true || changeCoin == true) {
     mode = 5;
   }
 
@@ -463,6 +470,22 @@ void loop() {
     lcd.clear();
     preGet = millis();
     mode = 2;
+  }
+  if (customKey == '*') {
+    // receive change coin
+    lcd.clear();
+    if (sum >= 5 && sum < 10) {
+      eject();
+      delay(500);
+      sumChange -= 5;
+    } else if (sum >= 10 && sum < 15) {
+      eject();
+      delay(500); 
+      eject();
+      delay(500);
+      sumChange -= 10;
+    }
+    sum = 0;
   }
 
 }

@@ -25,6 +25,8 @@ void mode5() {
     lcd.print(" Heater Not Working ");
   }  else if (waterState == true) {
     lcd.print("      No Water      ");
+  } else if (changeCoin == true) {
+    lcd.print("   No Change Coin   ");
   }
   lcd.setCursor(0, 3);
   lcd.print("                    ");
@@ -38,6 +40,7 @@ void mode5() {
     noodleState = false;
     tempState = false;
     waterState = false;
+    changeCoin = false;
     lcd.clear();
     lcdCol = 11;
     countGet = 0;

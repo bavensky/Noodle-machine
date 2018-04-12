@@ -37,7 +37,7 @@ void mode1() {
 
   // exit choose noodle and refund 15 baht
   if (inChar == '*') {
-    // ดันเหรียญคืน 15 บาท
+    // ดันเหรียญคืน 15 บาท  
     eject();
     delay(500);
     eject();
@@ -46,6 +46,7 @@ void mode1() {
     lcd.clear();
     sum = 0;
     mode = 0;
+    sumChange -= 15;
   }
 
 
@@ -76,11 +77,13 @@ void mode1() {
       if (sum == 1) {
         eject();
         delay(500);
+        sumChange -= 5;
       } else if (sum == 2) {
         eject();
         delay(500);
         eject();
         delay(500);
+        sumChange -= 10;
       } else if (sum == 3) {
         eject();
         delay(500);
@@ -88,6 +91,7 @@ void mode1() {
         delay(500);
         eject();
         delay(500);
+        sumChange -= 15;
       }
 
 
@@ -133,11 +137,13 @@ void mode1() {
       if (sum == 1) {
         eject();
         delay(500);
+        sumChange -= 5;
       } else if (sum == 2) {
         eject();
         delay(500);
         eject();
         delay(500);
+        sumChange -= 10;
       } else if (sum == 3) {
         eject();
         delay(500);
@@ -145,6 +151,7 @@ void mode1() {
         delay(500);
         eject();
         delay(500);
+        sumChange -= 15;
       }
 
       //  เข้าฟังก์ชันอัพเดทข้อมูล และเลือกบะหมี่
