@@ -135,11 +135,14 @@ char inChar;    // ตัวแปรสำหรับเก็บตัวอ�
 byte countPass = 0, mode = 0, lcdCol = 11, stateAdmin = 0;
 boolean pressState = false;
 
+const byte addrClear = 15;
+byte clearMonth = 0;
+
+
 // Get noodle count
 byte countHeater;
 byte countGet;
 byte dataNoodle;
-
 
 // detect coin vending
 byte sum;
@@ -181,6 +184,7 @@ boolean tempState = false;
 boolean waterState = false;
 boolean hotWaterState = false;
 boolean changeCoin = false;
+boolean checkWaterFilter = false;
 
 
 /*************** Sub function ***************/
@@ -301,6 +305,18 @@ void setup() {
   //  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
 
+  // update clear month for first time when you upload code
+  DateTime now = rtc.now();   //  read time now
+  clearMonth = now.month() + 6;
+  if (clearMonth > 12) {
+    clearMonth = clearMonth - 12;
+  }
+  EEPROM.write(addrClear, addrClear);
+
+  // read clear month form EEPROM
+  clearMonth = EEPROM.read(addrClear);
+
+
 
   //  read EEPROM stock Noodle
   fstock1 = EEPROM.read(f_stock1);
@@ -344,6 +360,11 @@ void setup() {
 void loop() {
   digitalWrite(heater, HIGH); // set heater default
   DateTime now = rtc.now();   //  read time now
+
+  // check Water Filter every 6 month
+  if (clearMonth == now.month()) {
+    checkWaterFilter = true;
+  }
 
 
   //////// All Mode ////////
@@ -417,7 +438,7 @@ void loop() {
   }
 
   // check change coin
-  if(sumChange <= 0) {
+  if (sumChange <= 0) {
     changeCoin = true;
   }
 
@@ -442,7 +463,7 @@ void loop() {
 
 
   //  warning detect
-  if (noodleState == true || tempState == true || waterState == true || changeCoin == true) {
+  if (noodleState == true || tempState == true || waterState == true || changeCoin == true || checkWaterFilter = true) {
     mode = 5;
   }
 
@@ -480,7 +501,7 @@ void loop() {
       sumChange -= 5;
     } else if (sum >= 10 && sum < 15) {
       eject();
-      delay(500); 
+      delay(500);
       eject();
       delay(500);
       sumChange -= 10;

@@ -27,6 +27,8 @@ void mode5() {
     lcd.print("      No Water      ");
   } else if (changeCoin == true) {
     lcd.print("   No Change Coin   ");
+  } else if (checkWaterFilter = true) {
+    lcd.print(" Clear Water Filter ");
   }
   lcd.setCursor(0, 3);
   lcd.print("                    ");
@@ -41,6 +43,21 @@ void mode5() {
     tempState = false;
     waterState = false;
     changeCoin = false;
+
+    
+    checkWaterFilter = false;
+    // update clear month for first time when you upload code
+    DateTime now = rtc.now();   //  read time now
+    clearMonth = now.month() + 6;
+    if (clearMonth > 12) {
+      clearMonth = clearMonth - 12;
+    }
+    EEPROM.write(addrClear, addrClear);
+
+    // read clear month form EEPROM
+    clearMonth = EEPROM.read(addrClear);
+
+
     lcd.clear();
     lcdCol = 11;
     countGet = 0;
